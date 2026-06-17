@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>شرح المكتبات — سوبر ماركت OS2</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Fira+Code:wght@400;500;600&display=swap');
+
+  :root {
+    --bg:      #060d1a;
+    --bg2:     #0d1526;
+    --bg3:     #1a2a3a;
+    --accent:  #00e5c3;
+    --fg:      #c9d1d9;
+    --blue:    #1f6feb;
+    --green:   #3fb950;
+    --red:     #f85149;
+    --yellow:  #d29922;
+    --purple:  #a78bfa;
+    --orange:  #fb923c;
+    --gray:    #30363d;
+    --border:  #1a3a5a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 100vh;
+  }
+
+  /* ── HEADER ── */
+  .site-header {
+    background: linear-gradient(180deg, #080f20 0%, #060d1a 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 32px 40px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .site-header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,195,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,195,0.03) 1px, transparent 1px);
+    background-size: 30px 30px;
+    pointer-events: none;
+  }
+  .header-label {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.75rem;
+    color: var(--accent);
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+    opacity: 0.7;
+  }
+  .header-title {
+    font-size: 2.2rem;
+    font-weight: 900;
+    color: white;
+    line-height: 1.2;
+  }
+  .header-title span { color: var(--accent); }
+  .header-sub {
+    color: #4a7a9a;
+    font-size: 0.9rem;
+    margin-top: 8px;
+  }
+  .header-counts {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .count-pill {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 18px;
+    font-size: 0.82rem;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .count-pill strong { color: var(--accent); font-family: 'Fira Code', monospace; }
+
+  /* ── NAV TABS ── */
+  .nav-bar {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-bar::-webkit-scrollbar { height: 3px; }
+  .nav-bar::-webkit-scrollbar-thumb { background: var(--border); }
+  .nav-tab {
+    padding: 14px 18px;
+    font-size: 0.83rem;
+    font-weight: 600;
+    color: #5a7a9a;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    white-space: nowrap;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .nav-tab:hover { color: var(--fg); }
+  .nav-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  /* ── LAYOUT ── */
+  .page { display: none; padding: 32px 40px 60px; max-width: 1200px; margin: 0 auto; }
+  .page.active { display: block; animation: fadeUp 0.25s ease; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+  /* ── SECTION HEADER ── */
+  .section-head {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    margin-bottom: 28px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-icon { font-size: 2.4rem; line-height: 1; }
+  .section-name { font-size: 1.5rem; font-weight: 900; color: white; line-height: 1; }
+  .section-tag {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.72rem;
+    padding: 3px 10px;
+    border-radius: 12px;
+    margin-bottom: 3px;
+  }
+  .section-desc { font-size: 0.88rem; color: #5a7a9a; margin-top: 3px; }
+
+  /* ── LIBRARY CARD ── */
+  .lib-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .lib-card:hover { border-color: #2a5a7a; }
+
+  .lib-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 22px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .lib-icon { font-size: 1.8rem; flex-shrink: 0; }
+  .lib-meta { flex: 1; }
+  .lib-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .lib-import {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.78rem;
+    background: var(--bg3);
+    color: var(--accent);
+    padding: 2px 9px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,229,195,0.2);
+  }
+  .lib-kind {
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 2px 9px;
+    border-radius: 10px;
+    letter-spacing: 0.5px;
+  }
+  .kind-builtin  { background: rgba(31,111,235,0.15); color: var(--blue); border: 1px solid rgba(31,111,235,0.3); }
+  .kind-external { background: rgba(0,229,195,0.1);  color: var(--accent); border: 1px solid rgba(0,229,195,0.25); }
+  .kind-stdlib   { background: rgba(63,185,80,0.12); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+
+  .lib-tagline { font-size: 0.83rem; color: #5a7a9a; margin-top: 3px; }
+
+  .lib-arrow {
+    color: #5a7a9a;
+    font-size: 1rem;
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .lib-card.open .lib-arrow { transform: rotate(180deg); }
+
+  .lib-body {
+    display: none;
+    border-top: 1px solid var(--border);
+  }
+  .lib-card.open .lib-body { display: block; }
+
+  .lib-content { padding: 20px 22px; }
+
+  /* ── TABS INSIDE CARD ── */
+  .card-tabs { display: flex; gap: 2px; margin-bottom: 16px; }
+  .card-tab {
+    padding: 6px 16px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    border-radius: 5px;
+    cursor: pointer;
+    color: #5a7a9a;
+    background: transparent;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    font-family: 'Cairo', sans-serif;
+  }
+  .card-tab:hover { color: var(--fg); background: var(--bg3); }
+  .card-tab.active { color: var(--accent); background: rgba(0,229,195,0.08); border-color: rgba(0,229,195,0.25); }
+
+  .card-panel { display: none; }
+  .card-panel.active { display: block; }
+
+  /* ── TEXT HELPERS ── */
+  .prose { font-size: 0.88rem; line-height: 1.85; color: #8aa8c8; }
+  .prose strong { color: var(--fg); }
+  .prose .hl { color: var(--accent); font-weight: 600; }
+  .prose .red { color: var(--red); }
+  .prose .green { color: var(--green); }
+  .prose .yellow { color: var(--yellow); }
+
+  /* ── USE POINTS ── */
+  .use-list { list-style: none; display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+  .use-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #8aa8c8;
+    line-height: 1.6;
+  }
+  .use-list li .bullet {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-top: 1px;
+  }
+  .use-list li strong { color: var(--fg); }
+
+  /* ── CODE BLOCK ── */
+  .code-block {
+    background: #030810;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 14px 16px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.78rem;
+    line-height: 1.9;
+    overflow-x: auto;
+    margin: 10px 0;
+  }
+  .code-block .kw  { color: #ff7b72; }
+  .code-block .fn  { color: #d2a8ff; }
+  .code-block .st  { color: #a5d6ff; }
+  .code-block .cm  { color: #3a5a4a; }
+  .code-block .num { color: #79c0ff; }
+  .code-block .cl  { color: #ffa657; }
+
+  /* ── COMPARISON TABLE ── */
+  .cmp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    margin: 12px 0;
+  }
+  .cmp-table th {
+    background: var(--bg3);
+    color: #8aa8c8;
+    padding: 8px 12px;
+    text-align: right;
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.75rem;
+  }
+  .cmp-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(26,42,58,0.6);
+    color: var(--fg);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .cmp-table tr:last-child td { border-bottom: none; }
+  .cmp-table td:first-child { color: var(--accent); font-family: 'Fira Code', monospace; font-size: 0.75rem; }
+
+  /* ── INFO BOX ── */
+  .info-box {
+    background: rgba(0,229,195,0.05);
+    border: 1px solid rgba(0,229,195,0.2);
+    border-right: 3px solid var(--accent);
+    border-radius: 0 7px 7px 0;
+    padding: 12px 16px;
+    font-size: 0.83rem;
+    line-height: 1.7;
+    color: #8aa8c8;
+    margin: 12px 0;
+  }
+  .info-box strong { color: var(--fg); }
+
+  .warn-box {
+    background: rgba(248,81,73,0.06);
+    border: 1px solid rgba(248,81,73,0.25);
+    border-right: 3px solid var(--red);
+    border-radius: 0 7px 7px 0;
+    padding: 12px 16px;
+    font-size: 0.83rem;
+    line-height: 1.7;
+    color: #8aa8c8;
+    margin: 12px 0;
+  }
+  .warn-box strong { color: var(--red); }
+
+  /* ── MINI BADGE ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.72rem;
+    padding: 2px 9px;
+    border-radius: 12px;
+    font-family: 'Fira Code', monospace;
+    margin: 2px;
+  }
+
+  /* ── FILE TAGS ── */
+  .file-tags { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+  .file-tag {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: #8aa8c8;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.72rem;
+    padding: 3px 10px;
+    border-radius: 4px;
+  }
+  .file-tag .dot { color: var(--accent); margin-left: 4px; }
+
+  /* ── SUMMARY GRID ── */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+    margin: 20px 0;
+  }
+  .summary-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .summary-card:hover { border-color: #2a5a7a; transform: translateY(-2px); }
+  .sc-icon { font-size: 1.6rem; flex-shrink: 0; }
+  .sc-name { font-size: 0.9rem; font-weight: 700; color: white; }
+  .sc-type { font-size: 0.68rem; font-family: 'Fira Code', monospace; color: var(--accent); margin: 2px 0; }
+  .sc-desc { font-size: 0.78rem; color: #5a7a9a; line-height: 1.5; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* ── BACK TO TOP ── */
+  .back-top {
+    position: fixed;
+    bottom: 24px;
+    left: 24px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    z-index: 50;
+  }
+  .back-top:hover { background: var(--bg3); border-color: var(--accent); }
+
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="site-header">
+  <div class="header-label">📚 LIBRARIES REFERENCE</div>
+  <div class="header-title">مكتبات <span>سوبر ماركت OS2</span></div>
+  <div class="header-sub">شرح كل مكتبة مستخدمة — لماذا؟ وأين؟ وكيف؟</div>
+  <div class="header-counts">
+    <div class="count-pill">🐍 <strong>14</strong> مكتبة مدمجة في Python</div>
+    <div class="count-pill">📦 <strong>3</strong> مكتبات خارجية</div>
+    <div class="count-pill">📁 <strong>14</strong> ملف في المشروع</div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav-bar">
+  <div class="nav-tab active" onclick="showPage('page-overview')">🗺 نظرة عامة</div>
+  <div class="nav-tab" onclick="showPage('page-threading')">🧵 التزامن والخيوط</div>
+  <div class="nav-tab" onclick="showPage('page-data')">🗄 البيانات والتخزين</div>
+  <div class="nav-tab" onclick="showPage('page-ui')">🖥 الواجهة</div>
+  <div class="nav-tab" onclick="showPage('page-charts')">📊 الرسوم البيانية</div>
+  <div class="nav-tab" onclick="showPage('page-external')">📦 المكتبات الخارجية</div>
+  <div class="nav-tab" onclick="showPage('page-misc')">🔧 أدوات متنوعة</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: نظرة عامة
+══════════════════════════════════════════════════════════ -->
+<div id="page-overview" class="page active">
+
+  <div class="section-head">
+    <div class="section-icon">🗺</div>
+    <div>
+      <div class="section-name">نظرة عامة على جميع المكتبات</div>
+      <div class="section-desc">خريطة كاملة — من أين جاءت كل مكتبة وما دورها</div>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <strong>كيف تقرأ هذا الشرح؟</strong><br>
+    كل مكتبة لها نوع: <span style="color:var(--blue)">■ مدمجة</span> = موجودة مع Python بدون تثبيت |
+    <span style="color:var(--green)">■ مكتبة قياسية</span> = جزء من Python Standard Library |
+    <span style="color:var(--accent)">■ خارجية</span> = تحتاج <code style="background:var(--bg3);padding:1px 6px;border-radius:3px;font-family:monospace">pip install</code>
+  </div>
+
+  <!-- All libraries summary grid -->
+  <div class="summary-grid">
+
+    <div class="summary-card">
+      <div class="sc-icon">🧵</div>
+      <div>
+        <div class="sc-name">threading</div>
+        <div class="sc-type">stdlib • مدمجة</div>
+        <div class="sc-desc">العمود الفقري — كل خيط وقفل وسيمافور في المشروع</div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="sc-icon">⏳</div>
+      <div>
+        <div class="sc-name">time</div>
+        <div class="sc-type">stdlib • مدمجة</div>
+        <div class="sc-desc">الانتظار والتوقيت وقياس أداء العمليات</div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="sc-icon">🗄</div>
+      <div>
+        <div class="sc-name">sqlite3</div>
+        <div class="sc-type">stdlib • مدمجة</div>
+        <div class="sc-desc">قاعدة البيانات — المنتجات والفواتير وAudit Log</div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="sc-icon">🎲</div>
+      <div>
+        <div class="sc-name">random</div>
+        <div class="sc-type">stdlib • مدمجة</div>
+        <div class="sc-desc">توليد بيانات تجريبية وتأخير عشوائي في المحاكاة</div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="sc-icon">📅</div>
+      <div>
+        <div class="sc-name">datetime</div>
+        <div class="sc-type">stdlib • مدمجة</div>
+        <div class="sc-desc">طوابع الزمن على الفواتير والأحداث في السجل</div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="sc-icon">📬</div>
+      <div>
+        <div class="sc-name">queue</div>
+        <div class="sc-type">stdlib • مدمجة</div>
+        <div class="sc-desc">Queue آمنة للخيوط في Producer-Consumer</div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="sc-icon">🔺</div>
+      <div>
+        <div class="sc-name">heapq</div>
+        <div class="sc-type">stdlib • مدمجة</div>
+        <div class="sc-desc">Priority Queue الفعّالة في الجدولة والاستراحة</div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="sc-icon">🏊</div>
+      <div>
+        <div class="sc-name">concurrent.futures</div>
+        <div class="sc-type">stdlib • مدمجة</div>
+        <div class="sc-desc">ThreadPoolExecutor لمعالجة الفواتير بالتوازي</div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="sc-icon">🌐</div>
+      <div>
+        <div class="sc-name">asyncio</div>
+        <div class="sc-type">stdlib • مدمجة</div>
+        <div class="sc-desc">خادم الطلبات الأونلاين غير المتزامن</div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="sc-icon">🔌</div>
+      <div>
+        <div class="sc-name">socket</div>
+        <div class="sc-type">stdlib • مدمجة</div>
+        <div class="sc-desc">اتصال TCP بين عملاء الطلبات والخادم</div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="sc-icon">⚙️</div>
+      <div>
+        <div class="sc-name">multiprocessing</div>
+        <div class="sc-type">stdlib • مدمجة</div>
+        <div class="sc-desc">عمليات متوازية حقيقية لتقرير المبيعات</div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="sc-icon">🔒</div>
+      <div>
+        <div class="sc-name">hashlib</div>
+        <div class="sc-type">stdlib • مدمجة</div>
+        <div class="sc-desc">تشفير كلمة المرور بـ SHA-256</div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="sc-icon">📋</div>
+      <div>
+        <div class="sc-name">collections</div>
+        <div class="sc-type">stdlib • مدمجة</div>
+        <div class="sc-desc">deque لسجلات Timeline بحجم ثابت</div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="sc-icon">📦</div>
+      <div>
+        <div class="sc-name">importlib / subprocess / sys / os</div>
+        <div class="sc-type">stdlib • مدمجة</div>
+        <div class="sc-desc">نظام التثبيت التلقائي للمكتبات الخارجية</div>
+      </div>
+    </div>
+
+    <div class="summary-card" style="border-color:rgba(0,229,195,0.3);">
+      <div class="sc-icon">📊</div>
+      <div>
+        <div class="sc-name">matplotlib</div>
+        <div class="sc-type" style="color:var(--accent);">خارجية • pip install</div>
+        <div class="sc-desc">جميع الرسوم البيانية الحية داخل tkinter</div>
+      </div>
+    </div>
+
+    <div class="summary-card" style="border-color:rgba(0,229,195,0.3);">
+      <div class="sc-icon">💻</div>
+      <div>
+        <div class="sc-name">psutil</div>
+        <div class="sc-type" style="color:var(--accent);">خارجية • pip install</div>
+        <div class="sc-desc">قراءة CPU% و RAM% الحقيقيين من النظام</div>
+      </div>
+    </div>
+
+    <div class="summary-card" style="border-color:rgba(0,229,195,0.3);">
+      <div class="sc-icon">📄</div>
+      <div>
+        <div class="sc-name">reportlab</div>
+        <div class="sc-type" style="color:var(--accent);">خارجية • pip install</div>
+        <div class="sc-desc">توليد تقرير PDF احترافي بالنتائج</div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="sc-icon">🖥</div>
+      <div>
+        <div class="sc-name">tkinter</div>
+        <div class="sc-type">stdlib • مدمجة مع Python</div>
+        <div class="sc-desc">الواجهة الرسومية الكاملة — نوافذ وأزرار وجداول</div>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="sc-icon">🔢</div>
+      <div>
+        <div class="sc-name">json</div>
+        <div class="sc-type">stdlib • مدمجة</div>
+        <div class="sc-desc">تحويل بيانات الطلبات الأونلاين نص ↔ بيانات</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: التزامن والخيوط
+══════════════════════════════════════════════════════════ -->
+<div id="page-threading" class="page">
+
+  <div class="section-head">
+    <div class="section-icon">🧵</div>
+    <div>
+      <div class="section-name">مكتبات التزامن والخيوط</div>
+      <div class="section-desc">القلب النابض للمشروع — كل مفاهيم OS2 هنا</div>
+    </div>
+  </div>
+
+  <!-- threading -->
+  <div class="lib-card open">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">🧵</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          threading
+          <code class="lib-import">import threading</code>
+          <span class="lib-kind kind-stdlib">Python stdlib</span>
+        </div>
+        <div class="lib-tagline">الأداة الأساسية للخيوط — Lock / RLock / Semaphore / Event / Barrier</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <div class="card-tabs">
+          <div class="card-tab active" onclick="switchTab(this,'t-why')">لماذا؟</div>
+          <div class="card-tab" onclick="switchTab(this,'t-how')">كيف استخدمناه؟</div>
+          <div class="card-tab" onclick="switchTab(this,'t-code')">أمثلة من الكود</div>
+        </div>
+
+        <div id="t-why" class="card-panel active">
+          <p class="prose">
+            <strong>threading</strong> هي المكتبة الرسمية في Python لإنشاء خيوط التنفيذ المتعددة (Threads).
+            كل مفهوم تطبيقي في مادة نظام التشغيل 2 يعتمد عليها مباشرةً:
+          </p>
+          <ul class="use-list" style="margin-top:12px;">
+            <li><div class="bullet" style="background:rgba(63,185,80,0.15);color:var(--green);">✓</div><div><strong>Thread()</strong> — كل صندوق بيع، كل مراقب، كل عملية في الخلفية هي Thread مستقل</div></li>
+            <li><div class="bullet" style="background:rgba(63,185,80,0.15);color:var(--green);">✓</div><div><strong>Lock()</strong> — Mutex الكلاسيكي لحماية المخزون من Race Condition</div></li>
+            <li><div class="bullet" style="background:rgba(63,185,80,0.15);color:var(--green);">✓</div><div><strong>RLock()</strong> — Reentrant Lock للعمليات المتداخلة التي تحتاج نفس القفل مرتين</div></li>
+            <li><div class="bullet" style="background:rgba(63,185,80,0.15);color:var(--green);">✓</div><div><strong>Semaphore(n)</strong> — يحدد عدد الخيوط المسموح لها بالدخول المتزامن للمورد</div></li>
+            <li><div class="bullet" style="background:rgba(63,185,80,0.15);color:var(--green);">✓</div><div><strong>Event()</strong> — إيقاف الخيوط بشكل نظيف عند إغلاق البرنامج (global_stop_event)</div></li>
+            <li><div class="bullet" style="background:rgba(63,185,80,0.15);color:var(--green);">✓</div><div><strong>Condition()</strong> — داخل RWLock لتنسيق القرّاء والكتّاب</div></li>
+            <li><div class="bullet" style="background:rgba(63,185,80,0.15);color:var(--green);">✓</div><div><strong>Barrier()</strong> — في سيناريو Stress Test لإطلاق كل الخيوط في لحظة واحدة</div></li>
+            <li><div class="bullet" style="background:rgba(63,185,80,0.15);color:var(--green);">✓</div><div><strong>enumerate()</strong> — لجمع قائمة جميع الخيوط النشطة في Task Manager</div></li>
+          </ul>
+        </div>
+
+        <div id="t-how" class="card-panel">
+          <div class="file-tags">
+            <span class="file-tag"><span class="dot">●</span>core.py</span>
+            <span class="file-tag"><span class="dot">●</span>ui_windows.py</span>
+            <span class="file-tag"><span class="dot">●</span>database.py</span>
+            <span class="file-tag"><span class="dot">●</span>deadlock_room.py</span>
+            <span class="file-tag"><span class="dot">●</span>starvation_aging.py</span>
+            <span class="file-tag"><span class="dot">●</span>task_manager.py</span>
+          </div>
+          <table class="cmp-table">
+            <tr><th>الأداة</th><th>أين تُستخدم في المشروع</th><th>المفهوم</th></tr>
+            <tr><td>threading.Lock()</td><td>stock_lock — invoice_lock — stats_lock</td><td>Mutex</td></tr>
+            <tr><td>threading.RLock()</td><td>stock_rlock — _pay_rlock</td><td>Reentrant Lock</td></tr>
+            <tr><td>threading.Semaphore(3)</td><td>stock_semaphore — MAX_CONCURRENT</td><td>Semaphore</td></tr>
+            <tr><td>threading.Event()</td><td>global_stop_event — _stop_ev</td><td>إيقاف نظيف</td></tr>
+            <tr><td>threading.Condition()</td><td>داخل RWLock._read_ready</td><td>Readers-Writers</td></tr>
+            <tr><td>threading.Barrier()</td><td>Stress Test — سيناريو رقم 5</td><td>Synchronization Point</td></tr>
+            <tr><td>threading.Thread(daemon=True)</td><td>OverdueInvoiceMonitor — DeadlockDetector</td><td>Daemon Threads</td></tr>
+            <tr><td>threading.enumerate()</td><td>Task Manager — Thread Visualization</td><td>Live Thread List</td></tr>
+            <tr><td>threading.active_count()</td><td>Dashboard — لوحة التحكم</td><td>Thread Counter</td></tr>
+          </table>
+        </div>
+
+        <div id="t-code" class="card-panel">
+          <div class="code-block">
+<span class="cm"># ── تعريف الأقفال الرئيسية في core.py ──</span>
+<span class="kw">import</span> threading
+
+stock_lock  = threading.<span class="fn">Lock</span>()    <span class="cm"># Mutex — خيط واحد فقط يعدل المخزون</span>
+stock_rlock = threading.<span class="fn">RLock</span>()   <span class="cm"># للعمليات المتداخلة (reentrant)</span>
+stock_semaphore = threading.<span class="fn">Semaphore</span>(<span class="num">3</span>)  <span class="cm"># أقصى 3 خيوط متزامنة</span>
+global_stop_event = threading.<span class="fn">Event</span>()  <span class="cm"># إيقاف نظيف للبرنامج</span>
+
+<span class="cm"># ── إنشاء Thread مع اسم واضح ──</span>
+t = threading.<span class="fn">Thread</span>(
+    target=self._overdue_invoice_monitor,
+    daemon=<span class="cl">True</span>,
+    name=<span class="st">"OverdueInvoiceMonitor"</span>
+)
+t.<span class="fn">start</span>()
+
+<span class="cm"># ── Stress Test: Barrier لإطلاق 20 خيطاً معاً ──</span>
+barrier = threading.<span class="fn">Barrier</span>(<span class="num">20</span>)
+<span class="kw">def</span> <span class="fn">stress_worker</span>(tid):
+    barrier.<span class="fn">wait</span>()  <span class="cm"># ينتظر الكل هنا ثم ينطلقون معاً</span>
+    <span class="cm"># ... عملية البيع بدون / مع Lock ...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- concurrent.futures -->
+  <div class="lib-card">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">🏊</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          concurrent.futures
+          <code class="lib-import">from concurrent.futures import ThreadPoolExecutor</code>
+          <span class="lib-kind kind-stdlib">Python stdlib</span>
+        </div>
+        <div class="lib-tagline">Thread Pool — معالجة الفواتير المتزامنة بشكل منظّم</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <p class="prose">
+          بدل إنشاء Thread جديد لكل فاتورة (مكلف ومفوضر)، يُنشئ <strong>ThreadPoolExecutor</strong>
+          مجموعة ثابتة من الخيوط تُعاد استخدامها. كل طلب بيع يُرسَل للـ Pool وينتظر دوره.
+        </p>
+        <div class="info-box">
+          <strong>لماذا Pool بدل Thread مباشر؟</strong><br>
+          إنشاء Thread جديد لكل عملية يستهلك ذاكرة ووقت. Pool يُعيد استخدام الخيوط المتاحة —
+          أسرع وأكثر كفاءة وقابلاً للتحكم في الحد الأقصى للتزامن.
+        </div>
+        <div class="code-block">
+<span class="cm"># core.py</span>
+thread_pool = ThreadPoolExecutor(
+    max_workers=<span class="num">8</span>,
+    thread_name_prefix=<span class="st">"PoolWorker"</span>
+)
+
+<span class="cm"># ui_windows.py — إرسال فاتورة للـ Pool</span>
+thread_pool.<span class="fn">submit</span>(self._process_sale_thread, cart_copy, customer)
+        </div>
+        <div class="file-tags">
+          <span class="file-tag"><span class="dot">●</span>core.py — تعريف thread_pool</span>
+          <span class="file-tag"><span class="dot">●</span>ui_windows.py — استخدامه في البيع</span>
+          <span class="file-tag"><span class="dot">●</span>sales_report.py — ThreadPoolExecutor منفصل للمقارنة</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- multiprocessing -->
+  <div class="lib-card">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">⚙️</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          multiprocessing
+          <code class="lib-import">import multiprocessing</code>
+          <span class="lib-kind kind-stdlib">Python stdlib</span>
+        </div>
+        <div class="lib-tagline">عمليات متوازية حقيقية تتجاوز GIL — تقرير المبيعات</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <div class="warn-box">
+          <strong>لماذا لا تكفي Threads للمهام الحسابية؟</strong><br>
+          Python لديها <strong>GIL (Global Interpreter Lock)</strong> — قفل يمنع أكثر من خيط من تنفيذ كود Python
+          في نفس اللحظة. النتيجة: Threads مفيدة لـ I/O لكن لا تُسرّع الحسابات الثقيلة.
+          multiprocessing يُنشئ عمليات مستقلة — كل عملية لها GIL خاصها — موازاة حقيقية!
+        </div>
+        <p class="prose">في تبويب <strong>تقرير المبيعات</strong> نُقارن ثلاث طرق لمعالجة 100 فاتورة:</p>
+        <table class="cmp-table">
+          <tr><th>الطريقة</th><th>السرعة</th><th>السبب</th></tr>
+          <tr><td>Sequential</td><td>الأبطأ</td><td>واحدة بعد واحدة</td></tr>
+          <tr><td>ThreadPoolExecutor</td><td>متوسط (وأحياناً أبطأ!)</td><td>GIL يمنع التوازي الحقيقي</td></tr>
+          <tr><td>multiprocessing.Pool</td><td>الأسرع ✓</td><td>كل نواة معالج = عملية مستقلة</td></tr>
+        </table>
+        <div class="code-block">
+<span class="cm"># sales_report.py</span>
+<span class="kw">import</span> multiprocessing
+
+<span class="kw">with</span> multiprocessing.<span class="fn">Pool</span>(processes=multiprocessing.cpu_count()) <span class="kw">as</span> pool:
+    results = pool.<span class="fn">map</span>(process_invoice, invoices)
+        </div>
+        <div class="file-tags">
+          <span class="file-tag"><span class="dot">●</span>sales_report.py</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- asyncio -->
+  <div class="lib-card">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">🌀</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          asyncio
+          <code class="lib-import">import asyncio</code>
+          <span class="lib-kind kind-stdlib">Python stdlib</span>
+        </div>
+        <div class="lib-tagline">تزامن بدون خيوط — الطلبات الأونلاين على خادم TCP</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <p class="prose">
+          <strong>asyncio</strong> يُتيح معالجة طلبات متعددة في نفس الوقت بـ <span class="hl">Thread واحد فقط</span>
+          — عبر تبديل المهام أثناء انتظار I/O (await). هذا هو أساس سيرفرات الويب الحديثة.
+        </p>
+        <div class="info-box">
+          <strong>الفرق بين asyncio و threading:</strong><br>
+          Threading = عدة عمال في نفس الوقت (موازاة حقيقية للـ I/O)<br>
+          asyncio = عامل واحد يتبدّل بين المهام بذكاء (Concurrency بدون Threads)
+        </div>
+        <div class="code-block">
+<span class="cm"># online_orders.py — خادم TCP غير متزامن</span>
+<span class="kw">async def</span> <span class="fn">handle_client</span>(reader, writer):
+    data = <span class="kw">await</span> reader.<span class="fn">read</span>(<span class="num">1024</span>)
+    <span class="kw">await</span> asyncio.<span class="fn">sleep</span>(<span class="num">0.3</span>)  <span class="cm"># محاكاة معالجة I/O</span>
+    writer.<span class="fn">write</span>(response)
+    <span class="kw">await</span> writer.<span class="fn">drain</span>()
+
+server = <span class="kw">await</span> asyncio.<span class="fn">start_server</span>(
+    handle_client, <span class="st">"127.0.0.1"</span>, <span class="num">8899</span>
+)
+        </div>
+        <div class="file-tags">
+          <span class="file-tag"><span class="dot">●</span>online_orders.py</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- queue -->
+  <div class="lib-card">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">📬</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          queue
+          <code class="lib-import">import queue</code>
+          <span class="lib-kind kind-stdlib">Python stdlib</span>
+        </div>
+        <div class="lib-tagline">طابور آمن للخيوط — قلب نظام Producer-Consumer</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <p class="prose">
+          <strong>queue.Queue</strong> هي بنية بيانات Thread-safe تلقائياً — لا تحتاج Lock يدوي.
+          تستخدم داخلياً Condition و Lock للحماية.
+        </p>
+        <ul class="use-list">
+          <li><div class="bullet" style="background:rgba(0,229,195,0.12);color:var(--accent);">1</div><div><strong>Producer-Consumer:</strong> Producers تضع طلبات في Queue — Consumers تأخذ منها</div></li>
+          <li><div class="bullet" style="background:rgba(0,229,195,0.12);color:var(--accent);">2</div><div><strong>AutoRestockSystem:</strong> طلبات إعادة التخزين تمر عبر Queue بين Scanner و Processor</div></li>
+          <li><div class="bullet" style="background:rgba(0,229,195,0.12);color:var(--accent);">3</div><div><strong>Online Orders:</strong> الطلبات الواردة من الخادم تُوضع في queue قبل المعالجة</div></li>
+        </ul>
+        <div class="code-block">
+<span class="cm"># queue.Queue مع حجم محدد = يمنع overflow تلقائياً</span>
+restock_queue = queue.<span class="fn">Queue</span>(maxsize=<span class="num">50</span>)
+
+<span class="cm"># Producer يضع — يتجمد إذا كانت ممتلئة</span>
+restock_queue.<span class="fn">put</span>(item)
+
+<span class="cm"># Consumer يأخذ — يتجمد إذا كانت فارغة</span>
+item = restock_queue.<span class="fn">get</span>(timeout=<span class="num">5</span>)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- heapq -->
+  <div class="lib-card">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">🔺</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          heapq
+          <code class="lib-import">import heapq</code>
+          <span class="lib-kind kind-stdlib">Python stdlib</span>
+        </div>
+        <div class="lib-tagline">Priority Queue فعّالة O(log n) — الجدولة و Starvation</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <p class="prose">
+          <strong>heapq</strong> تُحوّل قائمة عادية إلى Min-Heap — دائماً العنصر الأصغر في القمة.
+          نستخدمها لبناء Priority Queue مخصصة تدعم الأولويات والـ Aging.
+        </p>
+        <div class="code-block">
+<span class="cm"># core.py — PriorityQueue للزبائن</span>
+<span class="kw">class</span> <span class="cl">PriorityQueue</span>:
+    <span class="kw">def</span> <span class="fn">__init__</span>(self):
+        self._heap = []
+        self._lock = threading.<span class="fn">Lock</span>()
+
+    <span class="kw">def</span> <span class="fn">push</span>(self, item):
+        <span class="kw">with</span> self._lock:
+            heapq.<span class="fn">heappush</span>(self._heap, item)
+
+    <span class="kw">def</span> <span class="fn">pop</span>(self):
+        <span class="kw">with</span> self._lock:
+            <span class="kw">return</span> heapq.<span class="fn">heappop</span>(self._heap)
+        </div>
+        <div class="file-tags">
+          <span class="file-tag"><span class="dot">●</span>core.py — PriorityQueue + AgingPriorityQueue</span>
+          <span class="file-tag"><span class="dot">●</span>starvation_aging.py</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: البيانات والتخزين
+══════════════════════════════════════════════════════════ -->
+<div id="page-data" class="page">
+  <div class="section-head">
+    <div class="section-icon">🗄</div>
+    <div>
+      <div class="section-name">مكتبات البيانات والتخزين</div>
+      <div class="section-desc">قاعدة البيانات + التشفير + البيانات المنظمة</div>
+    </div>
+  </div>
+
+  <!-- sqlite3 -->
+  <div class="lib-card open">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">🗄</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          sqlite3
+          <code class="lib-import">import sqlite3</code>
+          <span class="lib-kind kind-stdlib">Python stdlib</span>
+        </div>
+        <div class="lib-tagline">قاعدة البيانات الكاملة — منتجات، فواتير، مدفوعات، Audit Log</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <p class="prose">
+          <strong>sqlite3</strong> قاعدة بيانات علائقية كاملة داخل ملف واحد — لا تحتاج خادم خارجي.
+          المشروع يستخدمها بأسلوب احترافي يعكس مفاهيم OS مباشرةً.
+        </p>
+        <ul class="use-list">
+          <li><div class="bullet" style="background:rgba(31,111,235,0.15);color:var(--blue);">✓</div><div><strong>WAL Mode (Write-Ahead Logging):</strong> يسمح بالقراءة أثناء الكتابة — ضروري للخيوط المتزامنة. بدونه كل خيط ينتظر الآخر!</div></li>
+          <li><div class="bullet" style="background:rgba(31,111,235,0.15);color:var(--blue);">✓</div><div><strong>Transactions + Rollback:</strong> إذا فشلت عملية البيع، تُلغى كلها. لا بيانات نصف مكتوبة.</div></li>
+          <li><div class="bullet" style="background:rgba(31,111,235,0.15);color:var(--blue);">✓</div><div><strong>Indexes:</strong> على اسم المنتج ورقم الفاتورة — يُسرّع البحث من O(n) إلى O(log n)</div></li>
+          <li><div class="bullet" style="background:rgba(31,111,235,0.15);color:var(--blue);">✓</div><div><strong>Audit Log:</strong> جدول يُسجّل كل عملية (Thread اسمه، قبل، بعد، توقيت، وضع التزامن)</div></li>
+        </ul>
+        <div class="code-block">
+<span class="cm"># database.py — تفعيل WAL Mode</span>
+conn = sqlite3.<span class="fn">connect</span>(DB_PATH)
+conn.<span class="fn">execute</span>(<span class="st">"PRAGMA journal_mode=WAL"</span>)
+conn.<span class="fn">execute</span>(<span class="st">"PRAGMA synchronous=NORMAL"</span>)
+
+<span class="cm"># Transaction آمنة مع Rollback</span>
+<span class="kw">try</span>:
+    conn.<span class="fn">execute</span>(<span class="st">"BEGIN TRANSACTION"</span>)
+    conn.<span class="fn">execute</span>(<span class="st">"UPDATE products SET stock=? WHERE id=?"</span>, (new_stock, pid))
+    conn.<span class="fn">execute</span>(<span class="st">"INSERT INTO invoices ..."</span>, (...))
+    conn.<span class="fn">execute</span>(<span class="st">"COMMIT"</span>)
+<span class="kw">except</span>:
+    conn.<span class="fn">rollback</span>()  <span class="cm"># تراجع عن كل شيء!</span>
+        </div>
+        <div class="file-tags">
+          <span class="file-tag"><span class="dot">●</span>database.py — تعريف قاعدة البيانات</span>
+          <span class="file-tag"><span class="dot">●</span>ui_windows.py — جميع القراءات والكتابات</span>
+          <span class="file-tag"><span class="dot">●</span>reports.py — جلب البيانات للتقرير</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- hashlib -->
+  <div class="lib-card">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">🔒</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          hashlib
+          <code class="lib-import">import hashlib</code>
+          <span class="lib-kind kind-stdlib">Python stdlib</span>
+        </div>
+        <div class="lib-tagline">تشفير كلمة المرور بـ SHA-256 — أمان تسجيل الدخول</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <p class="prose">
+          لا نحفظ كلمة المرور كنص عادي في قاعدة البيانات — بل <strong>بصمتها (Hash)</strong> فقط.
+          حتى لو سرق أحد ملف قاعدة البيانات، لا يستطيع معرفة الكلمة الأصلية.
+        </p>
+        <div class="code-block">
+<span class="cm"># ui_windows.py — تحويل كلمة المرور قبل المقارنة</span>
+pw_hash = hashlib.<span class="fn">sha256</span>(
+    self.pass_entry.<span class="fn">get</span>().<span class="fn">encode</span>()
+).<span class="fn">hexdigest</span>()
+
+<span class="cm"># قاعدة البيانات لا تعرف الكلمة الأصلية — فقط الـ Hash</span>
+c.<span class="fn">execute</span>(<span class="st">"SELECT id FROM users WHERE username=? AND password=?"</span>,
+        (user, pw_hash))
+        </div>
+        <div class="file-tags">
+          <span class="file-tag"><span class="dot">●</span>database.py — تخزين Hash عند إنشاء المستخدم</span>
+          <span class="file-tag"><span class="dot">●</span>ui_windows.py — LoginWindow</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- json -->
+  <div class="lib-card">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">🔢</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          json
+          <code class="lib-import">import json</code>
+          <span class="lib-kind kind-stdlib">Python stdlib</span>
+        </div>
+        <div class="lib-tagline">تحويل بيانات الطلبات الأونلاين إلى نص وعكسه</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <p class="prose">
+          Socket يُرسل <strong>bytes</strong> فقط. لنرسل بيانات منظمة (اسم المنتج، الكمية، السعر)
+          نحوّلها لـ JSON نصي ثم نعيد تحويلها عند الاستقبال.
+        </p>
+        <div class="code-block">
+<span class="cm"># online_orders.py — إرسال طلب</span>
+order = {<span class="st">"product"</span>: <span class="st">"حليب"</span>, <span class="st">"qty"</span>: <span class="num">2</span>, <span class="st">"price"</span>: <span class="num">150.0</span>}
+data = json.<span class="fn">dumps</span>(order, ensure_ascii=<span class="cl">False</span>).<span class="fn">encode</span>(<span class="st">"utf-8"</span>)
+sock.<span class="fn">sendall</span>(data)
+
+<span class="cm"># الخادم يستقبل ويحلّل</span>
+raw = <span class="kw">await</span> reader.<span class="fn">read</span>(<span class="num">4096</span>)
+order = json.<span class="fn">loads</span>(raw.<span class="fn">decode</span>(<span class="st">"utf-8"</span>))
+        </div>
+        <div class="file-tags">
+          <span class="file-tag"><span class="dot">●</span>online_orders.py</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- collections -->
+  <div class="lib-card">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">📋</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          collections
+          <code class="lib-import">import collections</code>
+          <span class="lib-kind kind-stdlib">Python stdlib</span>
+        </div>
+        <div class="lib-tagline">deque لسجلات Timeline بحجم ثابت بدون إضاعة ذاكرة</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <p class="prose">
+          <strong>collections.deque(maxlen=N)</strong> قائمة دائرية — عند امتلائها تُحذف العناصر القديمة
+          تلقائياً. مثالية لسجلات Timeline والرسوم البيانية التي تُريد آخر 60 ثانية فقط.
+        </p>
+        <div class="code-block">
+<span class="cm"># ui_windows.py — حفظ آخر 60 نقطة فقط</span>
+<span class="kw">from</span> collections <span class="kw">import</span> deque
+
+self._dash_sales_history  = deque(maxlen=<span class="num">60</span>)
+self._dash_threads_history = deque(maxlen=<span class="num">60</span>)
+
+<span class="cm"># تُحذف الأقدم تلقائياً عند إضافة جديدة</span>
+self._dash_sales_history.<span class="fn">append</span>(total_sales)
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: الواجهة
+══════════════════════════════════════════════════════════ -->
+<div id="page-ui" class="page">
+  <div class="section-head">
+    <div class="section-icon">🖥</div>
+    <div>
+      <div class="section-name">مكتبات الواجهة الرسومية</div>
+      <div class="section-desc">tkinter وكل أدواتها — الواجهة كاملة بدون مكتبة خارجية</div>
+    </div>
+  </div>
+
+  <!-- tkinter -->
+  <div class="lib-card open">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">🖥</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          tkinter
+          <code class="lib-import">import tkinter as tk</code>
+          <span class="lib-kind kind-builtin">مدمج مع Python</span>
+        </div>
+        <div class="lib-tagline">الواجهة الرسومية الكاملة — نوافذ، أزرار، جداول، لوحة جانبية</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <p class="prose">
+          <strong>tkinter</strong> هي المكتبة الرسمية لبناء الواجهات الرسومية في Python.
+          لا تحتاج تثبيت — موجودة مع Python على كل نظام تشغيل.
+        </p>
+        <table class="cmp-table">
+          <tr><th>الأداة</th><th>الاستخدام في المشروع</th></tr>
+          <tr><td>tk.Tk() / tk.Toplevel()</td><td>النافذة الرئيسية ونوافذ الفواتير والحوارات</td></tr>
+          <tr><td>tk.Frame()</td><td>تقسيم الواجهة إلى أقسام — Sidebar، منطقة المحتوى</td></tr>
+          <tr><td>tk.Label()</td><td>كل النصوص والعناوين والإحصائيات</td></tr>
+          <tr><td>tk.Button()</td><td>جميع الأزرار الملونة في التبويبات</td></tr>
+          <tr><td>tk.Entry()</td><td>حقول الإدخال — اسم المشتري، البحث، كلمة المرور</td></tr>
+          <tr><td>tk.Canvas()</td><td>رسم صناديق الكاشير الحية و Timeline الخيوط</td></tr>
+          <tr><td>tk.Radiobutton()</td><td>اختيار وضع التزامن (Mutex/Semaphore/...)</td></tr>
+          <tr><td>tk.Spinbox()</td><td>عدد الصناديق وعدد Producers/Consumers</td></tr>
+          <tr><td>tk.Scale()</td><td>سرعة الإنتاج والاستهلاك في Producer-Consumer</td></tr>
+          <tr><td>tk.StringVar() / IntVar()</td><td>ربط المتغيرات بالعناصر الرسومية (Live Update)</td></tr>
+          <tr><td>self.after(ms, fn)</td><td>تحديث الواجهة دورياً بدون تجميد (كل 500ms، 1000ms...)</td></tr>
+        </table>
+        <div class="info-box">
+          <strong>self.after() — السر الحقيقي:</strong><br>
+          tkinter ذات خيط واحد. لو استدعينا دوال الخيوط مباشرة على الواجهة → تجمّد!
+          الحل: <code style="background:var(--bg3);padding:1px 6px;border-radius:3px;font-family:monospace">self.after(0, lambda: ...)</code>
+          يُجدوَل التحديث في الحلقة الرئيسية (main loop) بشكل آمن.
+        </div>
+        <div class="file-tags">
+          <span class="file-tag"><span class="dot">●</span>ui_windows.py — 6000+ سطر</span>
+          <span class="file-tag"><span class="dot">●</span>all other modules</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ttk -->
+  <div class="lib-card">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">🎨</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          tkinter.ttk
+          <code class="lib-import">from tkinter import ttk</code>
+          <span class="lib-kind kind-builtin">مدمج مع Python</span>
+        </div>
+        <div class="lib-tagline">عناصر واجهة محسّنة — Treeview، Progressbar، Scrollbar</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <p class="prose">
+          <strong>ttk</strong> (Themed Tk) هي نسخة محسّنة من tk العادية — نفس الأدوات لكن بمظهر أحدث وقابل للتخصيص.
+        </p>
+        <table class="cmp-table">
+          <tr><th>الأداة</th><th>الاستخدام</th></tr>
+          <tr><td>ttk.Treeview()</td><td>جميع الجداول — المنتجات، الفواتير، Audit Log، Scheduling</td></tr>
+          <tr><td>ttk.Progressbar()</td><td>شريط تقدم Stress Test (أحمر) وشريط Multiprocessing</td></tr>
+          <tr><td>ttk.Scrollbar()</td><td>التمرير في السيدبار وجداول البيانات</td></tr>
+          <tr><td>ttk.Style()</td><td>تخصيص ألوان Progressbar (red.Horizontal.TProgressbar)</td></tr>
+        </table>
+        <div class="code-block">
+<span class="cm"># Treeview — جدول المنتجات</span>
+tree = ttk.<span class="fn">Treeview</span>(frame, columns=(<span class="st">"id"</span>,<span class="st">"name"</span>,<span class="st">"price"</span>,<span class="st">"stock"</span>))
+tree.<span class="fn">heading</span>(<span class="st">"name"</span>, text=<span class="st">"المنتج"</span>, anchor=<span class="st">"e"</span>)
+
+<span class="cm"># تلوين الصفوف حسب الحالة</span>
+tree.tag_configure(<span class="st">"paid"</span>,    foreground=<span class="st">"#3fb950"</span>)
+tree.tag_configure(<span class="st">"unpaid"</span>,  foreground=<span class="st">"#f85149"</span>)
+tree.tag_configure(<span class="st">"partial"</span>, foreground=<span class="st">"#d29922"</span>)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- scrolledtext / messagebox / filedialog -->
+  <div class="lib-card">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">📝</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          scrolledtext · messagebox · filedialog
+          <span class="lib-kind kind-builtin">مدمج — tkinter.X</span>
+        </div>
+        <div class="lib-tagline">سجلات Console + نوافذ التأكيد + مستعرض الملفات</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <table class="cmp-table">
+          <tr><th>الأداة</th><th>الاستخدام</th></tr>
+          <tr><td>scrolledtext.ScrolledText()</td><td>كل صناديق السجل (Console) في كل تبويب — Race Log، PC Log، Cashier Log، تعلّم OS</td></tr>
+          <tr><td>messagebox.showerror()</td><td>رسائل الخطأ (كلمة مرور خاطئة، فشل الحفظ، تأكيد الحذف)</td></tr>
+          <tr><td>messagebox.askyesno()</td><td>تأكيد حذف منتج أو مسح Audit Log</td></tr>
+          <tr><td>messagebox.showinfo()</td><td>إشعار نجاح المزامنة والعمليات</td></tr>
+          <tr><td>filedialog.askdirectory()</td><td>اختيار مجلد حفظ الفواتير اليدوية</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: الرسوم البيانية
+══════════════════════════════════════════════════════════ -->
+<div id="page-charts" class="page">
+  <div class="section-head">
+    <div class="section-icon">📊</div>
+    <div>
+      <div class="section-name">مكتبات الرسوم البيانية</div>
+      <div class="section-desc">matplotlib — من أهم المكتبات الخارجية في المشروع</div>
+    </div>
+  </div>
+
+  <div class="lib-card open">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">📊</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          matplotlib
+          <code class="lib-import">import matplotlib.pyplot as plt</code>
+          <span class="lib-kind kind-external">خارجية — pip install</span>
+        </div>
+        <div class="lib-tagline">كل الرسوم البيانية الحية — Line Charts، Bar Charts، Gantt Charts، Timeline</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <div class="card-tabs">
+          <div class="card-tab active" onclick="switchTab(this,'m-why')">لماذا؟</div>
+          <div class="card-tab" onclick="switchTab(this,'m-where')">أين تُستخدم؟</div>
+          <div class="card-tab" onclick="switchTab(this,'m-code')">كيف؟</div>
+        </div>
+
+        <div id="m-why" class="card-panel active">
+          <p class="prose">
+            <strong>matplotlib</strong> هي مكتبة الرسوم البيانية الأشهر في Python. نحتاجها لأن tkinter
+            لا تملك أدوات رسم بياني تلقائية. كل رسم بياني في المشروع مبني عليها ومدمج
+            مباشرةً داخل نوافذ tkinter عبر <strong>FigureCanvasTkAgg</strong>.
+          </p>
+          <div class="warn-box">
+            <strong>تنبيه مهم — matplotlib.use('TkAgg'):</strong><br>
+            السطر الأول دائماً هو تحديد الـ Backend: matplotlib.use('TkAgg').
+            يجب كتابته <strong>قبل</strong> import matplotlib.pyplot. هذا يخبر matplotlib
+            أنها ستُعرض داخل نافذة tkinter وليس في نافذة مستقلة.
+          </div>
+        </div>
+
+        <div id="m-where" class="card-panel">
+          <table class="cmp-table">
+            <tr><th>الرسم</th><th>التبويب</th><th>النوع</th></tr>
+            <tr><td>مبيعات عبر الزمن</td><td>لوحة التحكم</td><td>Line Chart + Fill</td></tr>
+            <tr><td>عدد الخيوط النشطة</td><td>لوحة التحكم</td><td>Line Chart</td></tr>
+            <tr><td>Timeline الخيوط</td><td>Race Condition</td><td>Horizontal Bars</td></tr>
+            <tr><td>مبيعات كل صندوق</td><td>الصناديق</td><td>Bar Chart</td></tr>
+            <tr><td>Race Conditions لكل صندوق</td><td>الصناديق</td><td>Bar Chart</td></tr>
+            <tr><td>Queue Size عبر الزمن</td><td>Producer-Consumer</td><td>Line Chart</td></tr>
+            <tr><td>Gantt Chart</td><td>CPU Scheduling</td><td>Horizontal Bars</td></tr>
+            <tr><td>CPU% و RAM% الحيان</td><td>الأداء</td><td>Line Charts × 4</td></tr>
+            <tr><td>Page Faults</td><td>Paging</td><td>Bar Chart</td></tr>
+            <tr><td>Disk Head Movement</td><td>Disk Scheduling</td><td>Line Chart</td></tr>
+            <tr><td>Multiprocessing Speedup</td><td>تقرير المبيعات</td><td>Bar Chart</td></tr>
+            <tr><td>Sequential vs Asyncio</td><td>طلبات أونلاين</td><td>Bar Chart</td></tr>
+          </table>
+        </div>
+
+        <div id="m-code" class="card-panel">
+          <div class="code-block">
+<span class="cm"># الطريقة الصحيحة لدمج matplotlib مع tkinter</span>
+<span class="kw">import</span> matplotlib
+matplotlib.<span class="fn">use</span>(<span class="st">'TkAgg'</span>)  <span class="cm"># ← قبل أي import آخر لـ matplotlib!</span>
+<span class="kw">import</span> matplotlib.pyplot <span class="kw">as</span> plt
+<span class="kw">from</span> matplotlib.backends.backend_tkagg <span class="kw">import</span> FigureCanvasTkAgg
+
+<span class="cm"># إنشاء Figure ودمجها في Frame من tkinter</span>
+fig, (ax1, ax2) = plt.<span class="fn">subplots</span>(<span class="num">1</span>, <span class="num">2</span>, figsize=(<span class="num">13</span>, <span class="num">3.5</span>),
+                               facecolor=<span class="st">"#060d1a"</span>)
+
+canvas = <span class="fn">FigureCanvasTkAgg</span>(fig, master=chart_frame)
+canvas.get_tk_widget().<span class="fn">pack</span>(fill=<span class="st">"both"</span>, expand=<span class="cl">True</span>)
+
+<span class="cm"># تحديث الرسم حياً</span>
+ax1.<span class="fn">clear</span>()
+ax1.<span class="fn">fill_between</span>(xs, data, color=<span class="st">"#1f6feb"</span>, alpha=<span class="num">0.4</span>)
+ax1.<span class="fn">plot</span>(xs, data, color=<span class="st">"#1f6feb"</span>, linewidth=<span class="num">1.5</span>)
+canvas.<span class="fn">draw</span>()  <span class="cm"># إعادة رسم الـ Canvas</span>
+
+<span class="cm"># Gantt Chart — شريط أفقي لكل عملية</span>
+ax.<span class="fn">barh</span>(y=pid, width=burst, left=start,
+      color=color, edgecolor=<span class="st">"white"</span>, linewidth=<span class="num">0.5</span>)
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: المكتبات الخارجية
+══════════════════════════════════════════════════════════ -->
+<div id="page-external" class="page">
+  <div class="section-head">
+    <div class="section-icon">📦</div>
+    <div>
+      <div class="section-name">المكتبات الخارجية</div>
+      <div class="section-desc">تحتاج pip install — يثبّتها auto_install.py تلقائياً</div>
+    </div>
+  </div>
+
+  <div class="info-box">
+    <strong>نظام التثبيت التلقائي (auto_install.py):</strong><br>
+    عند أول تشغيل، يتحقق البرنامج من وجود المكتبات الثلاث. إذا كانت مفقودة يُثبّتها تلقائياً
+    مع شريط تقدم. إذا فشل التثبيت، يُظهر الأمر اليدوي.
+  </div>
+
+  <!-- psutil -->
+  <div class="lib-card open">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">💻</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          psutil
+          <code class="lib-import">import psutil</code>
+          <span class="lib-kind kind-external">pip install psutil</span>
+        </div>
+        <div class="lib-tagline">قراءة CPU% و RAM% من النظام مباشرةً — مراقبة أداء حقيقية</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <p class="prose">
+          <strong>psutil</strong> (Process and System Utilities) تتيح قراءة معلومات النظام الحقيقية
+          — استخدام CPU، استخدام الذاكرة، معلومات العمليات. بدونها لا يمكن رؤية استخدام النظام
+          الفعلي من داخل Python.
+        </p>
+        <div class="info-box">
+          <strong>لماذا خارجية وليست مدمجة؟</strong><br>
+          لأن الوصول لمعلومات النظام يختلف بين Windows/Linux/macOS.
+          psutil توحّد هذا الوصول في واجهة واحدة تعمل على كل الأنظمة.
+        </div>
+        <div class="code-block">
+<span class="cm"># ui_windows.py — قراءة CPU و RAM حياً</span>
+<span class="kw">import</span> psutil
+
+cpu_pct = psutil.<span class="fn">cpu_percent</span>(interval=<span class="num">0.5</span>)
+mem_pct = psutil.virtual_memory().percent
+
+<span class="cm"># يُستخدم في تبويب الأداء لرسم الرسوم البيانية</span>
+self.perf_cpu_history.<span class="fn">append</span>(cpu_pct)
+self.perf_mem_history.<span class="fn">append</span>(mem_pct)
+        </div>
+        <div class="warn-box">
+          <strong>المشروع يعمل بدونها أيضاً!</strong><br>
+          الكود يتحقق من وجودها: <code style="background:var(--bg3);padding:1px 6px;border-radius:3px;font-family:monospace">if HAS_PSUTIL:</code>
+          — إذا لم تكن مثبتة يظهر "N/A" بدل الرسم البياني.
+        </div>
+        <div class="file-tags">
+          <span class="file-tag"><span class="dot">●</span>ui_windows.py — تبويب الأداء</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- reportlab -->
+  <div class="lib-card">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">📄</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          reportlab
+          <code class="lib-import">from reportlab.lib.pagesizes import A4</code>
+          <span class="lib-kind kind-external">pip install reportlab</span>
+        </div>
+        <div class="lib-tagline">توليد تقرير PDF احترافي بإحصائيات النظام والخيوط</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <p class="prose">
+          <strong>reportlab</strong> مكتبة Python الأشهر لإنشاء ملفات PDF برمجياً. يستخدمها المشروع
+          لإنشاء تقرير شامل يحتوي على إحصائيات الخيوط، Race Conditions المكتشفة، Audit Log،
+          ومقارنة الأداء قبل/بعد التزامن.
+        </p>
+        <table class="cmp-table">
+          <tr><th>المكوّن</th><th>الاستخدام</th></tr>
+          <tr><td>A4</td><td>حجم الصفحة القياسي</td></tr>
+          <tr><td>SimpleDocTemplate</td><td>هيكل المستند مع هوامش</td></tr>
+          <tr><td>Paragraph</td><td>النصوص والعناوين</td></tr>
+          <tr><td>Table + TableStyle</td><td>جداول Audit Log والإحصائيات</td></tr>
+          <tr><td>getSampleStyleSheet</td><td>أنماط النص الجاهزة (عنوان، جسم، ...)</td></tr>
+          <tr><td>colors</td><td>ألوان الخلايا وترويسات الجداول</td></tr>
+        </table>
+        <div class="warn-box">
+          <strong>ملاحظة اللغة العربية:</strong><br>
+          reportlab لا يدعم الحروف العربية المتصلة بدون مكتبات إضافية (arabic_reshaper).
+          لذلك التقرير يستخدم اسماء ثنائية اللغة (عربي + إنجليزي) مع خطوط Latin قياسية.
+        </div>
+        <div class="code-block">
+<span class="cm"># reports.py — بناء تقرير PDF</span>
+<span class="kw">from</span> reportlab.platypus <span class="kw">import</span> SimpleDocTemplate, Paragraph, Table
+<span class="kw">from</span> reportlab.lib.pagesizes <span class="kw">import</span> A4
+
+doc = <span class="fn">SimpleDocTemplate</span>(filepath, pagesize=A4)
+elements = []
+
+elements.<span class="fn">append</span>(<span class="fn">Paragraph</span>(<span class="st">"Supermarket OS2 — Report"</span>, styles[<span class="st">"Title"</span>]))
+elements.<span class="fn">append</span>(<span class="fn">Table</span>(audit_data, style=table_style))
+
+doc.<span class="fn">build</span>(elements)
+        </div>
+        <div class="file-tags">
+          <span class="file-tag"><span class="dot">●</span>reports.py</span>
+          <span class="file-tag"><span class="dot">●</span>ui_windows.py — زر تصدير PDF في الـ Top Bar</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE: أدوات متنوعة
+══════════════════════════════════════════════════════════ -->
+<div id="page-misc" class="page">
+  <div class="section-head">
+    <div class="section-icon">🔧</div>
+    <div>
+      <div class="section-name">مكتبات أدوات متنوعة</div>
+      <div class="section-desc">time، datetime، random، os، socket، importlib، subprocess</div>
+    </div>
+  </div>
+
+  <!-- time -->
+  <div class="lib-card open">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">⏱</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          time
+          <code class="lib-import">import time</code>
+          <span class="lib-kind kind-stdlib">Python stdlib</span>
+        </div>
+        <div class="lib-tagline">الانتظار والتوقيت — محاكاة التأخير في كل خيط</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <table class="cmp-table">
+          <tr><th>الدالة</th><th>الاستخدام في المشروع</th></tr>
+          <tr><td>time.sleep(n)</td><td>محاكاة "وقت خدمة الزبون" في الصندوق — تأخير واقعي</td></tr>
+          <tr><td>time.sleep(0.0001)</td><td>في Race Condition لتكبير احتمال التضارب بين الخيوط</td></tr>
+          <tr><td>time.time()</td><td>قياس زمن تنفيذ Sequential vs Threads vs Multiprocessing</td></tr>
+          <tr><td>time.sleep() في Daemon</td><td>OverdueInvoiceMonitor ينام 60 ثانية بين كل فحص</td></tr>
+        </table>
+        <div class="info-box">
+          <strong>لماذا time.sleep() في Race Condition؟</strong><br>
+          بدون تأخير، الخيوط تعمل بسرعة كبيرة ويصعب رؤية التضارب. Sleep صغيرة
+          (<code style="background:var(--bg3);padding:1px 6px;border-radius:3px;font-family:monospace">0.0001s</code>)
+          تُعطي الجدولة فرصة لتبديل الخيوط وإظهار Race Condition بوضوح.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- datetime -->
+  <div class="lib-card">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">📅</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          datetime
+          <code class="lib-import">import datetime</code>
+          <span class="lib-kind kind-stdlib">Python stdlib</span>
+        </div>
+        <div class="lib-tagline">طوابع الزمن — الفواتير، Audit Log، الفحص اليومي</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <div class="code-block">
+<span class="cm"># طابع زمن لكل فاتورة</span>
+created = datetime.datetime.<span class="fn">now</span>().<span class="fn">strftime</span>(<span class="st">"%Y-%m-%d %H:%M:%S"</span>)
+
+<span class="cm"># فحص الفواتير القديمة (أكثر من 7 أيام)</span>
+cutoff = (datetime.datetime.<span class="fn">now</span>() - datetime.timedelta(days=<span class="num">7</span>)
+         ).<span class="fn">strftime</span>(<span class="st">"%Y-%m-%d %H:%M:%S"</span>)
+
+<span class="cm"># تسجيل الوقت الدقيق في Audit Log</span>
+ts = datetime.datetime.<span class="fn">now</span>().<span class="fn">strftime</span>(<span class="st">"%H:%M:%S.%f"</span>)[:-<span class="num">3</span>]
+<span class="cm"># النتيجة: "10:30:01.542" — دقيق لمللي-ثانية</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- random -->
+  <div class="lib-card">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">🎲</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          random
+          <code class="lib-import">import random</code>
+          <span class="lib-kind kind-stdlib">Python stdlib</span>
+        </div>
+        <div class="lib-tagline">بيانات تجريبية واقعية — أسعار، مخزون، تأخيرات، طلبات</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <ul class="use-list">
+          <li><div class="bullet" style="background:rgba(167,139,250,0.15);color:var(--purple);">✓</div><div><strong>random.uniform(0.05, 0.5)</strong> — وقت خدمة عشوائي لكل صندوق</div></li>
+          <li><div class="bullet" style="background:rgba(167,139,250,0.15);color:var(--purple);">✓</div><div><strong>random.randint(1000, 9999)</strong> — رقم الفاتورة التجريبية</div></li>
+          <li><div class="bullet" style="background:rgba(167,139,250,0.15);color:var(--purple);">✓</div><div><strong>random.choice(PRODUCTS)</strong> — اختيار منتج عشوائي في الطلبات الأونلاين</div></li>
+          <li><div class="bullet" style="background:rgba(167,139,250,0.15);color:var(--purple);">✓</div><div><strong>random.randint(1, 5)</strong> — أولوية عشوائية للزبون في Starvation</div></li>
+          <li><div class="bullet" style="background:rgba(167,139,250,0.15);color:var(--purple);">✓</div><div><strong>random.sample(range(200), 20)</strong> — طلبات Disk Scheduling العشوائية</div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- os -->
+  <div class="lib-card">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">📁</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          os
+          <code class="lib-import">import os</code>
+          <span class="lib-kind kind-stdlib">Python stdlib</span>
+        </div>
+        <div class="lib-tagline">التعامل مع الملفات ومعرفة عدد أنوية المعالج</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <div class="code-block">
+<span class="cm"># حفظ الفاتورة في مجلد إنشاؤه تلقائياً</span>
+save_dir = os.path.<span class="fn">join</span>(os.path.<span class="fn">expanduser</span>(<span class="st">"~"</span>), <span class="st">"فواتير"</span>)
+os.<span class="fn">makedirs</span>(save_dir, exist_ok=<span class="cl">True</span>)
+
+filepath = os.path.<span class="fn">join</span>(save_dir, <span class="st">f"فاتورة_{inv_num}.txt"</span>)
+<span class="kw">with</span> <span class="fn">open</span>(filepath, <span class="st">"w"</span>, encoding=<span class="st">"utf-8"</span>) <span class="kw">as</span> f:
+    f.<span class="fn">write</span>(invoice_text)
+
+<span class="cm"># sales_report.py — معرفة عدد الأنوية للـ Pool</span>
+cpu_cores = os.cpu_count()
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- socket -->
+  <div class="lib-card">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">🔌</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          socket
+          <code class="lib-import">import socket</code>
+          <span class="lib-kind kind-stdlib">Python stdlib</span>
+        </div>
+        <div class="lib-tagline">الاتصال الشبكي TCP — عملاء الطلبات الأونلاين</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <p class="prose">
+          بينما <strong>asyncio</strong> يبني الخادم، <strong>socket</strong> يُستخدم من طرف
+          العميل (Client) للاتصال بالخادم وإرسال الطلبات. في وضع "Sequential و Threads"
+          نستخدم socket مباشرةً؛ في وضع asyncio نستخدم asyncio.open_connection.
+        </p>
+        <div class="code-block">
+<span class="cm"># online_orders.py — عميل Socket عادي</span>
+<span class="kw">with</span> socket.<span class="fn">socket</span>(socket.AF_INET, socket.SOCK_STREAM) <span class="kw">as</span> s:
+    s.<span class="fn">connect</span>((<span class="st">"127.0.0.1"</span>, <span class="num">8899</span>))
+    s.<span class="fn">sendall</span>(json.<span class="fn">dumps</span>(order).<span class="fn">encode</span>())
+    response = s.<span class="fn">recv</span>(<span class="num">1024</span>)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- importlib + subprocess + sys -->
+  <div class="lib-card">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">⚙️</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          importlib · subprocess · sys
+          <span class="lib-kind kind-stdlib">Python stdlib</span>
+        </div>
+        <div class="lib-tagline">نظام التثبيت التلقائي — auto_install.py</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <table class="cmp-table">
+          <tr><th>المكتبة</th><th>الدور في auto_install.py</th></tr>
+          <tr><td>importlib.util</td><td>التحقق من وجود مكتبة بدون استيرادها فعلياً (find_spec) — أسرع وأخف</td></tr>
+          <tr><td>subprocess</td><td>تشغيل أمر pip install كعملية خارجية وجمع نتيجتها</td></tr>
+          <tr><td>sys</td><td>الحصول على مسار Python الحالي (sys.executable) لضمان استخدام pip الصحيح</td></tr>
+        </table>
+        <div class="code-block">
+<span class="cm"># auto_install.py — التحقق والتثبيت</span>
+<span class="kw">import</span> importlib.util, subprocess, sys
+
+<span class="cm"># التحقق من وجود مكتبة بدون استيرادها</span>
+<span class="kw">if</span> importlib.util.<span class="fn">find_spec</span>(<span class="st">"matplotlib"</span>) <span class="kw">is not None</span>:
+    <span class="kw">return True</span>  <span class="cm"># موجودة</span>
+
+<span class="cm"># تثبيت عبر pip مع capture للخطأ</span>
+result = subprocess.<span class="fn">run</span>(
+    [sys.executable, <span class="st">"-m"</span>, <span class="st">"pip"</span>, <span class="st">"install"</span>, <span class="st">"matplotlib"</span>],
+    capture_output=<span class="cl">True</span>, text=<span class="cl">True</span>, timeout=<span class="num">300</span>
+)
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- traceback -->
+  <div class="lib-card">
+    <div class="lib-header" onclick="toggleCard(this)">
+      <div class="lib-icon">🐛</div>
+      <div class="lib-meta">
+        <div class="lib-name">
+          traceback · concurrent.futures · os.path
+          <span class="lib-kind kind-stdlib">Python stdlib</span>
+        </div>
+        <div class="lib-tagline">معالجة الأخطاء وتتبعها في الخيوط</div>
+      </div>
+      <div class="lib-arrow">▼</div>
+    </div>
+    <div class="lib-body">
+      <div class="lib-content">
+        <p class="prose">
+          <strong>traceback</strong> يُستخدم في Except blocks داخل الخيوط لطباعة تفاصيل الخطأ كاملاً.
+          مهم لأن الخيوط لا تُظهر الأخطاء تلقائياً في الواجهة — يجب التقاطها يدوياً.
+        </p>
+        <div class="code-block">
+<span class="cm"># داخل خيط — التقاط أي خطأ وعرضه</span>
+<span class="kw">import</span> traceback
+
+<span class="kw">try</span>:
+    <span class="cm"># عملية البيع</span>
+    ...
+<span class="kw">except Exception as</span> e:
+    err_msg = traceback.<span class="fn">format_exc</span>()
+    self.<span class="fn">after</span>(<span class="num">0</span>, <span class="kw">lambda</span>: self._log(f<span class="st">"خطأ: {err_msg}"</span>, <span class="st">"err"</span>))
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="back-top" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</div>
+
+<script>
+  // Page navigation
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+
+  // Card toggle
+  function toggleCard(header) {
+    const card = header.closest('.lib-card');
+    card.classList.toggle('open');
+  }
+
+  // Card internal tabs
+  function switchTab(tabEl, panelId) {
+    const content = tabEl.closest('.lib-content');
+    content.querySelectorAll('.card-tab').forEach(t => t.classList.remove('active'));
+    content.querySelectorAll('.card-panel').forEach(p => p.classList.remove('active'));
+    tabEl.classList.add('active');
+    const panel = document.getElementById(panelId);
+    if (panel) panel.classList.add('active');
+  }
+</script>
+</body>
+</html>

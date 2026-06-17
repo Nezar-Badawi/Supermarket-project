@@ -1,0 +1,2499 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>سوبر ماركت OS2 v2.1 — شرح المشروع</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Fira+Code:wght@400;500&display=swap');
+
+  :root {
+    --bg:       #060d1a;
+    --bg2:      #0d1526;
+    --bg3:      #1a2a3a;
+    --accent:   #00e5c3;
+    --fg:       #c9d1d9;
+    --blue:     #1f6feb;
+    --green:    #3fb950;
+    --red:      #f85149;
+    --yellow:   #d29922;
+    --purple:   #a78bfa;
+    --gray:     #30363d;
+    --border:   #1a3a5a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ═══════════════════════════════════════════
+     INTRO SCREEN
+  ═══════════════════════════════════════════ */
+  #intro-screen {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.8s ease;
+  }
+  #intro-screen.hidden { opacity: 0; pointer-events: none; }
+
+  .intro-logo {
+    font-size: 5rem;
+    animation: floatLogo 3s ease-in-out infinite;
+  }
+  @keyframes floatLogo {
+    0%,100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+  }
+
+  .intro-title {
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: var(--accent);
+    margin: 16px 0 8px;
+    text-align: center;
+    letter-spacing: -1px;
+  }
+  .intro-sub {
+    color: #4a7a9a;
+    font-size: 1rem;
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .intro-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    max-width: 640px;
+    margin-bottom: 48px;
+  }
+  .intro-tag {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-family: 'Fira Code', monospace;
+    animation: tagPulse 2s ease-in-out infinite;
+  }
+  .intro-tag:nth-child(2n) { animation-delay: 0.3s; }
+  .intro-tag:nth-child(3n) { animation-delay: 0.6s; }
+  @keyframes tagPulse {
+    0%,100% { border-color: var(--border); }
+    50% { border-color: var(--accent); box-shadow: 0 0 8px rgba(0,229,195,0.3); }
+  }
+
+  .start-btn {
+    background: var(--accent);
+    color: var(--bg);
+    border: none;
+    padding: 16px 48px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .start-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: white;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .start-btn:hover::after { opacity: 0.1; }
+  .start-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,229,195,0.4); }
+
+  .grid-bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(0,229,195,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,195,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 0;
+  }
+
+  /* ═══════════════════════════════════════════
+     MAIN APP
+  ═══════════════════════════════════════════ */
+  #main-app {
+    display: none;
+    min-height: 100vh;
+  }
+  #main-app.visible { display: flex; flex-direction: column; }
+
+  /* ─── TOP BAR ─── */
+  .topbar {
+    background: #080f20;
+    border-bottom: 2px solid var(--accent);
+    height: 56px;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    gap: 16px;
+  }
+  .topbar-brand {
+    color: var(--accent);
+    font-size: 1rem;
+    font-weight: 700;
+    margin-right: auto;
+  }
+  .topbar-stat {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.78rem;
+    color: var(--green);
+    background: rgba(63,185,80,0.08);
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(63,185,80,0.2);
+  }
+  .topbar-user {
+    color: #5a7a9a;
+    font-size: 0.85rem;
+  }
+  .topbar-pdf {
+    background: var(--bg2);
+    color: var(--accent);
+    border: 1px solid var(--border);
+    padding: 5px 14px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif;
+    transition: all 0.2s;
+  }
+  .topbar-pdf:hover { background: var(--bg3); border-color: var(--accent); }
+
+  /* ─── LAYOUT ─── */
+  .app-body {
+    display: flex;
+    flex: 1;
+    min-height: calc(100vh - 58px);
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar {
+    width: 220px;
+    background: var(--bg2);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    border-left: 1px solid var(--border);
+    position: sticky;
+    top: 58px;
+    height: calc(100vh - 58px);
+    overflow-y: auto;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .sidebar-logo {
+    padding: 14px 16px 8px;
+    text-align: center;
+  }
+  .sidebar-logo-text {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .sidebar-divider {
+    height: 1px;
+    background: var(--accent);
+    margin: 0 12px 8px;
+    opacity: 0.4;
+  }
+  .sidebar-group-label {
+    padding: 8px 14px 4px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: #2a5a7a;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .sidebar-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border-radius: 0;
+    user-select: none;
+    position: relative;
+  }
+  .sidebar-btn:hover { background: rgba(0,229,195,0.05); }
+  .sidebar-btn.active {
+    background: #0a1a2e;
+  }
+  .sidebar-btn.active .sb-icon,
+  .sidebar-btn.active .sb-name {
+    color: var(--accent) !important;
+    font-weight: 700;
+  }
+  .sidebar-btn.active::before {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 2px 0 0 2px;
+  }
+  .sb-icon { font-size: 1rem; width: 22px; text-align: center; }
+  .sb-name { font-size: 0.82rem; color: #8aa8c8; flex: 1; }
+  .sb-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+    animation: dotBlink 1.5s ease-in-out infinite;
+  }
+  @keyframes dotBlink {
+    0%,100% { opacity: 1; } 50% { opacity: 0.3; }
+  }
+
+  /* ─── CONTENT ─── */
+  .content-area {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--bg);
+  }
+
+  .tab-panel {
+    display: none;
+    padding: 24px;
+    animation: fadeIn 0.3s ease;
+  }
+  .tab-panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ─── COMPONENT STYLES ─── */
+  .tab-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .tab-subtitle {
+    color: #5a7a9a;
+    font-size: 0.88rem;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #8aa8c8;
+    margin: 20px 0 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ─── MOCK WINDOW ─── */
+  .mock-window {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .mock-titlebar {
+    background: #080f20;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .mock-dots { display: flex; gap: 6px; }
+  .mock-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .mock-dot.red { background: var(--red); }
+  .mock-dot.yellow { background: var(--yellow); }
+  .mock-dot.green { background: var(--green); }
+  .mock-win-title { font-size: 0.82rem; color: #5a7a9a; margin-right: auto; font-family: 'Fira Code', monospace; }
+  .mock-body { padding: 16px; }
+
+  /* ─── CARDS GRID ─── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .stat-card {
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .stat-card-label { font-size: 0.8rem; font-weight: 600; color: white; opacity: 0.85; }
+  .stat-card-value { font-size: 1.8rem; font-weight: 900; color: white; font-family: 'Fira Code', monospace; }
+
+  /* ─── BUTTONS ─── */
+  .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin: 12px 0; align-items: center; }
+  .mock-btn {
+    padding: 8px 18px;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    position: relative;
+  }
+  .mock-btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+  .mock-btn .tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    right: 50%;
+    transform: translateX(50%);
+    background: #0d1526;
+    border: 1px solid var(--accent);
+    color: var(--fg);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    white-space: nowrap;
+    min-width: 220px;
+    text-align: center;
+    z-index: 200;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+    line-height: 1.5;
+  }
+  .mock-btn .tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 50%;
+    transform: translateX(50%);
+    border: 6px solid transparent;
+    border-top-color: var(--accent);
+  }
+  .mock-btn:hover .tooltip { display: block; }
+
+  /* ─── DESCRIPTION PANELS ─── */
+  .info-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-right: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin: 12px 0;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    color: #8aa8c8;
+  }
+  .info-box strong { color: var(--fg); }
+
+  .os-concept-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(0,229,195,0.08);
+    border: 1px solid rgba(0,229,195,0.3);
+    color: var(--accent);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-family: 'Fira Code', monospace;
+    margin: 3px;
+  }
+
+  /* ─── FAKE TREEVIEW ─── */
+  .fake-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    margin: 8px 0;
+  }
+  .fake-table th {
+    background: var(--bg3);
+    color: #8aa8c8;
+    padding: 7px 10px;
+    text-align: right;
+    font-weight: 600;
+    font-size: 0.78rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .fake-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid rgba(26,42,58,0.5);
+    color: var(--fg);
+    font-family: 'Fira Code', monospace;
+    font-size: 0.78rem;
+  }
+  .fake-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+  /* ─── CONSOLE / LOG ─── */
+  .fake-console {
+    background: #030810;
+    border-radius: 6px;
+    padding: 12px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.78rem;
+    line-height: 1.8;
+    color: #c9d1d9;
+    max-height: 160px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+  }
+  .fake-console .log-sync { color: var(--accent); }
+  .fake-console .log-ok   { color: var(--green); }
+  .fake-console .log-err  { color: var(--red); }
+  .fake-console .log-warn { color: var(--yellow); }
+  .fake-console .log-info { color: #8aa8c8; }
+  .fake-console .log-race { color: var(--red); font-weight: 700; }
+
+  /* ─── RADIO OPTION ─── */
+  .radio-group { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 8px 0; }
+  .radio-opt {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: default;
+  }
+  .radio-circle {
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .radio-circle.selected::after {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* ─── CHART MOCKUP ─── */
+  .chart-mock {
+    background: var(--bg2);
+    border-radius: 6px;
+    padding: 12px;
+    margin: 8px 0;
+    border: 1px solid var(--border);
+  }
+  .chart-title { font-size: 0.78rem; color: #8aa8c8; margin-bottom: 8px; }
+  .bar-chart { display: flex; align-items: flex-end; gap: 8px; height: 80px; }
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .bar-fill { width: 100%; border-radius: 3px 3px 0 0; transition: height 0.3s; }
+  .bar-label { font-size: 0.65rem; color: #5a7a9a; font-family: 'Fira Code', monospace; }
+
+  .line-chart-svg { width: 100%; height: 60px; }
+
+  /* ─── CANVAS MOCKUP (cashier boxes) ─── */
+  .cashier-boxes { display: flex; gap: 10px; padding: 12px; background: #030810; border-radius: 6px; }
+  .cashier-box {
+    flex: 1;
+    border-radius: 6px;
+    padding: 12px 10px;
+    text-align: center;
+    border: 2px solid rgba(255,255,255,0.05);
+    font-size: 0.75rem;
+    min-width: 80px;
+  }
+  .cashier-box-label { font-weight: 700; color: white; margin-bottom: 4px; }
+  .cashier-box-status { font-family: 'Fira Code', monospace; margin: 2px 0; color: rgba(255,255,255,0.7); }
+
+  /* ─── PROGRESS BAR ─── */
+  .progress-track {
+    background: #1a2a3a;
+    border-radius: 4px;
+    height: 10px;
+    overflow: hidden;
+    margin: 4px 0;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s;
+  }
+
+  /* ─── THREAD ITEM ─── */
+  .thread-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.78rem;
+    margin: 2px 0;
+  }
+  .thread-indicator {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ─── LOGIN MOCK ─── */
+  .login-mock {
+    max-width: 360px;
+    margin: 0 auto;
+    background: #0d1526;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .login-header {
+    height: 120px;
+    background: linear-gradient(180deg, #060d1a 0%, #0f1e35 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .login-brand { font-size: 1.6rem; font-weight: 900; color: var(--accent); }
+  .login-ver { font-size: 0.75rem; color: #4a7a9a; }
+  .login-body { padding: 20px; }
+  .login-label { font-size: 0.85rem; color: #8aa8c8; margin-bottom: 5px; text-align: right; }
+  .login-field {
+    width: 100%;
+    background: #1a2a3a;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 12px;
+    color: white;
+    font-size: 0.9rem;
+    margin-bottom: 14px;
+    text-align: right;
+    direction: rtl;
+    font-family: 'Cairo', sans-serif;
+    outline: none;
+  }
+  .login-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #060d1a;
+    border: none;
+    padding: 12px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: 0.2s;
+  }
+  .login-btn:hover { background: #00c4a7; }
+
+  /* ─── CONCEPT CHIPS ─── */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 12px 0;
+  }
+  .concept-chip {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 0.78rem;
+    color: #8aa8c8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .concept-chip-icon { font-size: 1rem; }
+  .concept-chip-title { font-weight: 600; color: var(--fg); font-size: 0.8rem; }
+  .concept-chip-desc { font-size: 0.72rem; color: #5a7a9a; margin-top: 2px; }
+
+  /* ─── NOTIFICATION BANNER ─── */
+  .notif-banner {
+    background: rgba(210,153,34,0.15);
+    border: 1px solid var(--yellow);
+    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 0.82rem;
+    color: var(--yellow);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+  }
+
+  /* ─── LEARN CARD ─── */
+  .learn-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .learn-card-header {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .learn-card-title { font-size: 0.95rem; font-weight: 700; color: white; }
+  .learn-card-body {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    font-size: 0.82rem;
+    line-height: 1.7;
+    color: #8aa8c8;
+    background: #030810;
+    font-family: 'Fira Code', monospace;
+  }
+  .learn-run-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 10px 16px;
+    padding: 7px 18px;
+    border: none;
+    border-radius: 5px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: white;
+    cursor: pointer;
+  }
+
+  /* ─── SPINBOX ─── */
+  .spinbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0;
+    font-size: 0.85rem;
+    color: #8aa8c8;
+  }
+  .spinbox {
+    background: #1a2a3a;
+    border: none;
+    border-radius: 4px;
+    color: white;
+    padding: 4px 10px;
+    width: 60px;
+    text-align: center;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9rem;
+  }
+
+  /* ─── GANTT CHART MOCK ─── */
+  .gantt-mock {
+    background: var(--bg2);
+    border-radius: 6px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .gantt-row { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+  .gantt-label { width: 30px; font-family: 'Fira Code', monospace; font-size: 0.72rem; color: #8aa8c8; text-align: center; }
+  .gantt-block {
+    height: 24px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    color: white;
+    font-family: 'Fira Code', monospace;
+  }
+
+  /* ─── STRESS TEST BARS ─── */
+  .stress-bars {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 2px;
+    margin: 8px 0;
+  }
+  .stress-bar-item {
+    height: 14px;
+    border-radius: 2px;
+    background: var(--red);
+    position: relative;
+    overflow: hidden;
+  }
+  .stress-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.5s;
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .tab-panel { padding: 16px; }
+    .cards-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: #2a5a7a; }
+
+  /* ─── TOOLTIP INDICATOR ─── */
+  .hover-hint {
+    color: var(--accent);
+    font-size: 0.72rem;
+    opacity: 0.6;
+    margin-top: 6px;
+    text-align: center;
+  }
+
+  /* ─── PAGING GRID ─── */
+  .page-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 4px;
+    margin: 8px 0;
+  }
+  .page-frame {
+    height: 40px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-family: 'Fira Code', monospace;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  /* ─── TWO-COL ─── */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  .highlight { color: var(--accent); font-weight: 700; }
+  .code-inline {
+    background: var(--bg3);
+    color: var(--accent);
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.82rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+
+<!-- ════════════════════════════════════════════════════════════
+     INTRO SCREEN
+════════════════════════════════════════════════════════════ -->
+<div id="intro-screen">
+  <div class="intro-logo">🛒</div>
+  <div class="intro-title">سوبر ماركت OS2 v2.1</div>
+  <div class="intro-sub">شرح تفاعلي احترافي للمشروع — نظام التشغيل 2</div>
+  <div class="intro-tags">
+    <span class="intro-tag">⚡ Race Condition</span>
+    <span class="intro-tag">🔒 Mutex/RLock</span>
+    <span class="intro-tag">🚦 Semaphore</span>
+    <span class="intro-tag">☠ Deadlock Detection</span>
+    <span class="intro-tag">🔄 Producer-Consumer</span>
+    <span class="intro-tag">📅 CPU Scheduling</span>
+    <span class="intro-tag">🏪 Multi-Cashier</span>
+    <span class="intro-tag">💾 Thread Pool</span>
+    <span class="intro-tag">🗄 Memory Paging</span>
+    <span class="intro-tag">🚚 Disk Scheduling</span>
+    <span class="intro-tag">📑 Multiprocessing</span>
+    <span class="intro-tag">🌐 Asyncio / Sockets</span>
+    <span class="intro-tag">⏳ Starvation & Aging</span>
+    <span class="intro-tag">🖥 Task Manager</span>
+  </div>
+  <button class="start-btn" onclick="startApp()">▶ ابدأ الشرح</button>
+  <p style="color:#1a3a5a;font-size:0.75rem;margin-top:16px;">المصمم: إسماعيل اليوسف | نظام التشغيل 2</p>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════
+     MAIN APP
+════════════════════════════════════════════════════════════ -->
+<div id="main-app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <span class="topbar-stat">⚡ الخيوط: 12</span>
+    <span class="topbar-stat" style="color:var(--red);background:rgba(248,81,73,0.08);border-color:rgba(248,81,73,0.3);">🔍 Deadlock: None</span>
+    <span class="topbar-user">👤 admin</span>
+    <button class="topbar-pdf">📄 تصدير PDF</button>
+    <span class="topbar-brand">🛒 سوبر ماركت OS2 v2.1 | نظام التشغيل 2</span>
+  </div>
+
+  <div class="app-body">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-text">🛒 OS2</div>
+      </div>
+      <div class="sidebar-divider"></div>
+
+      <!-- مبيعات -->
+      <div class="sidebar-group-label">مبيعات</div>
+      <div class="sidebar-btn active" onclick="showTab('tab-dashboard')">
+        <span class="sb-icon">📊</span>
+        <span class="sb-name">لوحة التحكم</span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-sell')">
+        <span class="sb-icon">🛍</span>
+        <span class="sb-name">البيع</span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-products')">
+        <span class="sb-icon">📦</span>
+        <span class="sb-name">المنتجات</span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-invoices')">
+        <span class="sb-icon">🧾</span>
+        <span class="sb-name">الفواتير</span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-manual-inv')">
+        <span class="sb-icon">📝</span>
+        <span class="sb-name">فاتورة يدوية</span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-payments')">
+        <span class="sb-icon">💳</span>
+        <span class="sb-name">المدفوعات</span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-cashier')">
+        <span class="sb-icon">🏪</span>
+        <span class="sb-name">الصناديق</span>
+        <span class="sb-dot"></span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-discount')">
+        <span class="sb-icon">🏷</span>
+        <span class="sb-name">الخصومات</span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-delivery')">
+        <span class="sb-icon">🚚</span>
+        <span class="sb-name">التوصيل</span>
+      </div>
+
+      <!-- نظام التشغيل -->
+      <div class="sidebar-group-label">نظام التشغيل</div>
+      <div class="sidebar-btn" onclick="showTab('tab-thread-vis')">
+        <span class="sb-icon">🎨</span>
+        <span class="sb-name">مرئية الخيوط</span>
+        <span class="sb-dot"></span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-race')">
+        <span class="sb-icon">⚡</span>
+        <span class="sb-name">Race Condition</span>
+        <span class="sb-dot"></span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-pc')">
+        <span class="sb-icon">🔄</span>
+        <span class="sb-name">Producer-Consumer</span>
+        <span class="sb-dot"></span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-sched')">
+        <span class="sb-icon">📅</span>
+        <span class="sb-name">CPU Scheduling</span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-perf')">
+        <span class="sb-icon">📈</span>
+        <span class="sb-name">الأداء</span>
+        <span class="sb-dot"></span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-multicash')">
+        <span class="sb-icon">🏦</span>
+        <span class="sb-name">Multi-Cashier</span>
+        <span class="sb-dot"></span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-deadlock')">
+        <span class="sb-icon">🍵</span>
+        <span class="sb-name">غرفة الاستراحة</span>
+        <span class="sb-dot"></span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-paging')">
+        <span class="sb-icon">🗄</span>
+        <span class="sb-name">Paging</span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-disksched')">
+        <span class="sb-icon">🚚</span>
+        <span class="sb-name">Disk Scheduling</span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-salesreport')">
+        <span class="sb-icon">📑</span>
+        <span class="sb-name">تقرير المبيعات</span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-online')">
+        <span class="sb-icon">🌐</span>
+        <span class="sb-name">طلبات أونلاين</span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-taskmgr')">
+        <span class="sb-icon">🖥</span>
+        <span class="sb-name">Task Manager</span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-starvation')">
+        <span class="sb-icon">⏳</span>
+        <span class="sb-name">Starvation & Aging</span>
+      </div>
+
+      <!-- أخرى -->
+      <div class="sidebar-group-label">أخرى</div>
+      <div class="sidebar-btn" onclick="showTab('tab-audit')">
+        <span class="sb-icon">📋</span>
+        <span class="sb-name">Audit Log</span>
+      </div>
+      <div class="sidebar-btn" onclick="showTab('tab-learn')">
+        <span class="sb-icon">📚</span>
+        <span class="sb-name">تعلّم OS</span>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content-area">
+
+      <!-- ═══════ LOGIN PAGE ═══════ -->
+      <!-- نعرضها في البداية كشرح -->
+
+      <!-- ══════════════════════════════════
+           TAB: لوحة التحكم
+      ══════════════════════════════════ -->
+      <div id="tab-dashboard" class="tab-panel active">
+        <div class="tab-title">📊 لوحة التحكم الحية</div>
+        <div class="tab-subtitle">تعرض إحصائيات المتجر الآنية: المبيعات، المنتجات، الخيوط، والتنبيهات</div>
+
+        <div class="info-box">
+          <strong>ما هي لوحة التحكم؟</strong><br>
+          أول ما تراه بعد تسجيل الدخول. تتحدث كل ثانية تلقائياً بدون أن تضغط أي زر. تعرض ٤ بطاقات إحصائية و٢ رسم بياني حي.
+        </div>
+
+        <!-- 4 stat cards -->
+        <div class="cards-grid">
+          <div class="stat-card" style="background:#1f6feb;">
+            <div class="stat-card-label">🧾 فواتير اليوم</div>
+            <div class="stat-card-value">14</div>
+          </div>
+          <div class="stat-card" style="background:#238636;">
+            <div class="stat-card-label">💰 إجمالي المبيعات</div>
+            <div class="stat-card-value">3,421 ل.س</div>
+          </div>
+          <div class="stat-card" style="background:#9a7000;">
+            <div class="stat-card-label">📦 المنتجات</div>
+            <div class="stat-card-value">47</div>
+          </div>
+          <div class="stat-card" style="background:#a21caf;">
+            <div class="stat-card-label">⚡ الخيوط النشطة</div>
+            <div class="stat-card-value">12</div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="mock-window">
+          <div class="mock-titlebar">
+            <div class="mock-dots"><div class="mock-dot red"></div><div class="mock-dot yellow"></div><div class="mock-dot green"></div></div>
+            <span class="mock-win-title">📈 تطور المبيعات والخيوط (يتحدث كل ثانية)</span>
+          </div>
+          <div class="mock-body">
+            <div class="two-col">
+              <div class="chart-mock">
+                <div class="chart-title">إجمالي المبيعات (ل.س) — آخر 60 ثانية</div>
+                <svg class="line-chart-svg" viewBox="0 0 300 60">
+                  <defs>
+                    <linearGradient id="grad1" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" style="stop-color:#1f6feb;stop-opacity:0.4"/>
+                      <stop offset="100%" style="stop-color:#1f6feb;stop-opacity:0"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,55 L30,48 L60,40 L90,42 L120,30 L150,25 L180,28 L210,18 L240,12 L270,8 L300,5" stroke="#1f6feb" stroke-width="2" fill="none"/>
+                  <path d="M0,55 L30,48 L60,40 L90,42 L120,30 L150,25 L180,28 L210,18 L240,12 L270,8 L300,5 L300,60 L0,60Z" fill="url(#grad1)"/>
+                </svg>
+              </div>
+              <div class="chart-mock">
+                <div class="chart-title">الخيوط النشطة — آخر 60 ثانية</div>
+                <svg class="line-chart-svg" viewBox="0 0 300 60">
+                  <defs>
+                    <linearGradient id="grad2" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" style="stop-color:#3fb950;stop-opacity:0.4"/>
+                      <stop offset="100%" style="stop-color:#3fb950;stop-opacity:0"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,40 L30,35 L60,30 L90,38 L120,25 L150,30 L180,20 L210,28 L240,22 L270,25 L300,18" stroke="#3fb950" stroke-width="2" fill="none"/>
+                  <path d="M0,40 L30,35 L60,30 L90,38 L120,25 L150,30 L180,20 L210,28 L240,22 L270,25 L300,18 L300,60 L0,60Z" fill="url(#grad2)"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- تنبيه مخزون -->
+        <div class="notif-banner">
+          ⚠ تنبيهات المخزون المنخفض: حليب(3) | خبز(2) | سكر(1)
+        </div>
+
+        <div class="section-title">📌 ما يحدث تقنياً</div>
+        <div class="concept-grid">
+          <div class="concept-chip">
+            <div>
+              <div class="concept-chip-title">⏲ Auto-Refresh</div>
+              <div class="concept-chip-desc">self.after(1000, update) — يجدد كل ثانية</div>
+            </div>
+          </div>
+          <div class="concept-chip">
+            <div>
+              <div class="concept-chip-title">🗄 SQLite Query</div>
+              <div class="concept-chip-desc">يقرأ من جدول invoices + products</div>
+            </div>
+          </div>
+          <div class="concept-chip">
+            <div>
+              <div class="concept-chip-title">⚡ Thread Count</div>
+              <div class="concept-chip-desc">threading.active_count() حي</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: البيع
+      ══════════════════════════════════ -->
+      <div id="tab-sell" class="tab-panel">
+        <div class="tab-title">🛍 واجهة البيع</div>
+        <div class="tab-subtitle">نقطة البيع الرئيسية — بحث، سلة، وإصدار فاتورة بـ Thread Pool</div>
+
+        <div class="info-box">
+          كل عملية بيع تُرسل لـ <span class="highlight">Thread Pool</span> — لا يتجمد البرنامج أثناء معالجة أي طلب. تستطيع اختيار وضع التزامن لرؤية الفرق بين Lock وبدون Lock.
+        </div>
+
+        <div class="two-col">
+          <!-- Products list -->
+          <div>
+            <div class="section-title">📋 قائمة المنتجات</div>
+            <div class="mock-window">
+              <div class="mock-titlebar">
+                <div class="mock-dots"><div class="mock-dot red"></div><div class="mock-dot yellow"></div><div class="mock-dot green"></div></div>
+                <span class="mock-win-title">🔍 بحث في المنتجات</span>
+              </div>
+              <div class="mock-body" style="padding:10px;">
+                <input type="text" placeholder="🔍 اكتب اسم المنتج..." style="width:100%;background:#1a2a3a;border:none;border-radius:5px;padding:8px 12px;color:white;font-family:Cairo;font-size:0.85rem;direction:rtl;outline:none;margin-bottom:8px;" readonly>
+                <table class="fake-table">
+                  <tr><th>ID</th><th>المنتج</th><th>السعر</th><th>المخزون</th></tr>
+                  <tr><td>1</td><td>حليب</td><td>150.00</td><td style="color:var(--red)">3</td></tr>
+                  <tr><td>2</td><td>خبز</td><td>75.00</td><td>25</td></tr>
+                  <tr><td>3</td><td>سكر</td><td>200.00</td><td style="color:var(--red)">1</td></tr>
+                  <tr><td>4</td><td>أرز</td><td>350.00</td><td>40</td></tr>
+                  <tr><td>5</td><td>زيت</td><td>500.00</td><td>18</td></tr>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cart -->
+          <div>
+            <div class="section-title">🛒 سلة المشتريات</div>
+            <div class="mock-window">
+              <div class="mock-titlebar">
+                <div class="mock-dots"><div class="mock-dot red"></div><div class="mock-dot yellow"></div><div class="mock-dot green"></div></div>
+                <span class="mock-win-title">عناصر السلة</span>
+              </div>
+              <div class="mock-body" style="padding:10px;">
+                <table class="fake-table">
+                  <tr><th>المنتج</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th></tr>
+                  <tr><td>حليب</td><td>2</td><td>150</td><td>300</td></tr>
+                  <tr><td>خبز</td><td>3</td><td>75</td><td>225</td></tr>
+                </table>
+                <div style="margin-top:10px;font-size:0.82rem;color:#8aa8c8;">
+                  <div style="margin-bottom:6px;">اسم المشتري: <input type="text" value="أحمد محمد" style="background:#1a2a3a;border:none;border-radius:4px;padding:3px 8px;color:white;font-family:Cairo;" readonly></div>
+                  <div>الهاتف: <input type="text" value="0911000000" style="background:#1a2a3a;border:none;border-radius:4px;padding:3px 8px;color:white;font-family:Cairo;" readonly></div>
+                </div>
+                <div class="btn-row" style="margin-top:10px;">
+                  <button class="mock-btn" style="background:var(--green);color:white;flex:1;">
+                    ➕ أضف للسلة
+                    <span class="tooltip">يضيف المنتج المحدد من قائمة اليسار إلى السلة. اضغط مرتين لزيادة الكمية.</span>
+                  </button>
+                  <button class="mock-btn" style="background:var(--red);color:white;flex:1;">
+                    ➖ إزالة
+                    <span class="tooltip">يحذف العنصر المحدد من السلة.</span>
+                  </button>
+                </div>
+                <button class="mock-btn" style="background:var(--blue);color:white;width:100%;justify-content:center;margin-top:6px;">
+                  🧾 إصدار فاتورة (Thread Pool)
+                  <span class="tooltip">يرسل عملية البيع لـ Thread Pool — يخفض المخزون ويحفظ الفاتورة في SQLite — بدون تجميد الواجهة.</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Sync mode -->
+            <div class="section-title">🔄 وضع التزامن</div>
+            <div class="radio-group">
+              <div class="radio-opt" style="color:var(--red);">
+                <div class="radio-circle"><div></div></div> بدون ⚠
+              </div>
+              <div class="radio-opt" style="color:var(--green);">
+                <div class="radio-circle selected"></div> Mutex 🔒
+              </div>
+              <div class="radio-opt" style="color:var(--yellow);">
+                <div class="radio-circle"></div> Semaphore 🚦
+              </div>
+              <div class="radio-opt" style="color:var(--accent);">
+                <div class="radio-circle"></div> RWLock 📖
+              </div>
+            </div>
+            <div class="info-box" style="font-size:0.8rem;">
+              <strong>تأثير وضع التزامن:</strong><br>
+              • <span style="color:var(--red)">بدون</span>: خطر Race Condition — مخزون خاطئ<br>
+              • <span style="color:var(--green)">Mutex</span>: خيط واحد فقط يعدل المخزون<br>
+              • <span style="color:var(--yellow)">Semaphore</span>: 3 خيوط كحد أقصى<br>
+              • <span style="color:var(--accent)">RWLock</span>: قراءة متعددة + كتابة حصرية
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: المنتجات
+      ══════════════════════════════════ -->
+      <div id="tab-products" class="tab-panel">
+        <div class="tab-title">📦 إدارة المنتجات</div>
+        <div class="tab-subtitle">إضافة / تعديل / حذف المنتجات — كل تعديل يُسجَّل في Audit Log</div>
+
+        <div class="two-col">
+          <div>
+            <div class="section-title">📋 جدول المنتجات</div>
+            <table class="fake-table">
+              <tr><th>ID</th><th>اسم المنتج</th><th>السعر</th><th>المخزون</th></tr>
+              <tr><td>1</td><td>حليب</td><td>150.00</td><td style="color:var(--red)">3</td></tr>
+              <tr><td>2</td><td>خبز</td><td>75.00</td><td>25</td></tr>
+              <tr><td>3</td><td>سكر</td><td>200.00</td><td style="color:var(--red)">1</td></tr>
+              <tr><td>4</td><td>أرز</td><td>350.00</td><td>40</td></tr>
+              <tr style="background:rgba(0,229,195,0.05);"><td>5</td><td>زيت</td><td>500.00</td><td>18</td></tr>
+            </table>
+          </div>
+          <div>
+            <div class="section-title">✏ نموذج التعديل</div>
+            <div class="mock-window">
+              <div class="mock-titlebar">
+                <div class="mock-dots"><div class="mock-dot red"></div><div class="mock-dot yellow"></div><div class="mock-dot green"></div></div>
+                <span class="mock-win-title">إضافة / تعديل منتج</span>
+              </div>
+              <div class="mock-body">
+                <div style="font-size:0.82rem;color:#8aa8c8;">
+                  <div style="margin-bottom:8px;">اسم المنتج: <input type="text" value="زيت" style="background:#1a2a3a;border:none;border-radius:4px;padding:3px 8px;color:white;font-family:Cairo;width:160px;" readonly></div>
+                  <div style="margin-bottom:8px;">السعر: <input type="text" value="500" style="background:#1a2a3a;border:none;border-radius:4px;padding:3px 8px;color:white;font-family:Cairo;width:100px;" readonly></div>
+                  <div style="margin-bottom:12px;">المخزون: <input type="text" value="18" style="background:#1a2a3a;border:none;border-radius:4px;padding:3px 8px;color:white;font-family:Cairo;width:100px;" readonly></div>
+                </div>
+                <div class="btn-row">
+                  <button class="mock-btn" style="background:var(--green);color:white;flex:1;">
+                    💾 حفظ
+                    <span class="tooltip">يحفظ المنتج الجديد أو يعدّل الموجود في قاعدة البيانات. يُسجّل العملية في audit_log مع اسم الخيط.</span>
+                  </button>
+                  <button class="mock-btn" style="background:var(--red);color:white;flex:1;">
+                    🗑 حذف
+                    <span class="tooltip">يحذف المنتج المحدد بعد تأكيد المستخدم — يطلب Yes/No قبل الحذف.</span>
+                  </button>
+                  <button class="mock-btn" style="background:var(--gray);color:white;flex:1;">
+                    🔄 مسح
+                    <span class="tooltip">يمسح حقول النموذج ويُلغي التحديد من الجدول.</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="info-box">
+          <strong>التكامل مع نظام إعادة التخزين:</strong> عندما يصل مخزون أي منتج لأقل من 10 وحدات، يُطلق نظام <span class="code-inline">AutoRestockSystem</span> خيط إعادة تخزين تلقائي يرفع الكمية ويُشعر المستخدم.
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: الفواتير
+      ══════════════════════════════════ -->
+      <div id="tab-invoices" class="tab-panel">
+        <div class="tab-title">🧾 الفواتير المحفوظة</div>
+        <div class="tab-subtitle">عرض وبحث في جميع الفواتير المُصدَرة — مع تفاصيل كل فاتورة</div>
+
+        <div class="btn-row">
+          <button class="mock-btn" style="background:var(--blue);color:white;">
+            🔍 بحث
+            <span class="tooltip">يبحث في رقم الفاتورة أو اسم العميل أو رقم الهاتف.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--green);color:white;">
+            📄 تصدير تقرير
+            <span class="tooltip">يُنشئ تقرير PDF شامل بجميع الفواتير باستخدام مكتبة reportlab.</span>
+          </button>
+        </div>
+
+        <table class="fake-table">
+          <tr><th>رقم الفاتورة</th><th>العميل</th><th>الهاتف</th><th>التاريخ</th><th>الإجمالي</th></tr>
+          <tr><td style="color:var(--accent)">INV-20250617001</td><td>أحمد محمد</td><td>0911000000</td><td>2025-06-17 10:30</td><td>525.00</td></tr>
+          <tr><td style="color:var(--accent)">INV-20250617002</td><td>سارة علي</td><td>0922000000</td><td>2025-06-17 11:05</td><td>850.00</td></tr>
+          <tr><td style="color:var(--accent)">MAN-20250617003</td><td>عمر خالد</td><td>0933000000</td><td>2025-06-17 12:00</td><td>1200.00</td></tr>
+        </table>
+
+        <div class="section-title">📄 تفاصيل الفاتورة المحددة</div>
+        <div class="fake-console" style="font-size:0.75rem;">
+          <span class="log-sync">════════════════════════════════════════════════</span><br>
+          <span class="log-info">          🛒 سوبر ماركت OS2 — فاتورة</span><br>
+          <span class="log-sync">════════════════════════════════════════════════</span><br>
+          <span class="log-ok">  رقم الفاتورة : INV-20250617001</span><br>
+          <span class="log-ok">  الزبون       : أحمد محمد</span><br>
+          <span class="log-ok">  الهاتف       : 0911000000</span><br>
+          <span class="log-ok">  التاريخ      : 2025-06-17 10:30:00</span><br>
+          <span class="log-info">────────────────────────────────────────────────</span><br>
+          <span class="log-info">  حليب × 2 @ 150.00 = 300.00</span><br>
+          <span class="log-info">  خبز  × 3 @ 75.00  = 225.00</span><br>
+          <span class="log-info">────────────────────────────────────────────────</span><br>
+          <span class="log-ok">                المجموع الكلي:         525.00 ل.س</span><br>
+          <span class="log-sync">════════════════════════════════════════════════</span>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: فاتورة يدوية
+      ══════════════════════════════════ -->
+      <div id="tab-manual-inv" class="tab-panel">
+        <div class="tab-title">📝 الفاتورة اليدوية</div>
+        <div class="tab-subtitle">إدخال فاتورة بشكل يدوي مع حفظها في قاعدة البيانات وكملف نصي</div>
+
+        <div class="two-col">
+          <div>
+            <div class="section-title">إضافة عنصر للفاتورة</div>
+            <div class="mock-window">
+              <div class="mock-body">
+                <div style="font-size:0.82rem;color:#8aa8c8;display:grid;gap:8px;">
+                  <div>المنتج: <input type="text" placeholder="اسم المنتج" style="background:#1a2a3a;border:none;border-radius:4px;padding:4px 8px;color:white;font-family:Cairo;width:160px;" readonly></div>
+                  <div>السعر: <input type="text" placeholder="0.00" style="background:#1a2a3a;border:none;border-radius:4px;padding:4px 8px;color:white;font-family:Cairo;width:100px;" readonly></div>
+                  <div>الكمية: <input type="text" placeholder="1" style="background:#1a2a3a;border:none;border-radius:4px;padding:4px 8px;color:white;font-family:Cairo;width:80px;" readonly></div>
+                  <div>اسم المشتري: <input type="text" placeholder="اسم الزبون" style="background:#1a2a3a;border:none;border-radius:4px;padding:4px 8px;color:white;font-family:Cairo;width:150px;" readonly></div>
+                  <div>مسار الحفظ: <input type="text" placeholder="~/فواتير" style="background:#1a2a3a;border:none;border-radius:4px;padding:4px 8px;color:white;font-family:Cairo;width:160px;" readonly></div>
+                </div>
+                <div class="btn-row" style="margin-top:10px;flex-wrap:wrap;">
+                  <button class="mock-btn" style="background:var(--green);color:white;">
+                    ➕ أضف عنصر
+                    <span class="tooltip">يضيف السطر للفاتورة ويحسب الإجمالي تلقائياً.</span>
+                  </button>
+                  <button class="mock-btn" style="background:var(--red);color:white;">
+                    ➖ إزالة
+                    <span class="tooltip">يحذف السطر المحدد من الفاتورة.</span>
+                  </button>
+                  <button class="mock-btn" style="background:var(--blue);color:white;">
+                    🧾 إصدار الفاتورة
+                    <span class="tooltip">يحفظ الفاتورة في قاعدة البيانات وفي ملف .txt ثم يعرض نافذة معاينة.</span>
+                  </button>
+                  <button class="mock-btn" style="background:var(--gray);color:white;">
+                    📁 اختر مسار
+                    <span class="tooltip">يفتح مستعرض المجلدات لاختيار مكان حفظ ملف الفاتورة.</span>
+                  </button>
+                  <button class="mock-btn" style="background:var(--yellow);color:white;">
+                    🔄 إعادة ضبط
+                    <span class="tooltip">يمسح جميع حقول الفاتورة ويبدأ من جديد.</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="section-title">📄 معاينة الفاتورة</div>
+            <div class="fake-console" style="font-size:0.72rem;max-height:280px;">
+              <span class="log-sync">════════════════════════════════════════════════</span><br>
+              <span class="log-info">       🛒 سوبر ماركت OS2 — فاتورة يدوية</span><br>
+              <span class="log-sync">════════════════════════════════════════════════</span><br>
+              <span class="log-ok">  رقم الفاتورة : MAN-20250617143520123</span><br>
+              <span class="log-ok">  الزبون       : محمد عبدالله</span><br>
+              <span class="log-info">────────────────────────────────────────────────</span><br>
+              <span class="log-info">  أرز     350.00    2     700.00</span><br>
+              <span class="log-info">  زيت     500.00    1     500.00</span><br>
+              <span class="log-info">────────────────────────────────────────────────</span><br>
+              <span class="log-ok">              المجموع: 1200.00 ل.س</span><br>
+              <span class="log-sync">════════════════════════════════════════════════</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: المدفوعات
+      ══════════════════════════════════ -->
+      <div id="tab-payments" class="tab-panel">
+        <div class="tab-title">💳 نظام المدفوعات</div>
+        <div class="tab-subtitle">تسجيل الدفعات على الفواتير — يدعم RLock لمنع الكتابة المتزامنة</div>
+
+        <div class="btn-row">
+          <button class="mock-btn" style="background:var(--green);color:white;">
+            💾 تسجيل دفعة
+            <span class="tooltip">يسجل دفعة جديدة على الفاتورة المحددة. إذا كان RLock مفعّلاً، يأخذ القفل قبل الكتابة في قاعدة البيانات.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--blue);color:white;">
+            ✏ تعديل
+            <span class="tooltip">يتيح تعديل المبلغ المدفوع مع تسجيل الملاحظة في payments_log.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--yellow);color:white;">
+            🔗 مزامنة فواتير
+            <span class="tooltip">ينقل الفواتير من جدول invoices إلى invoice_payments حتى تتمكن من تسجيل دفعات عليها.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--gray);color:white;">
+            ➕ فاتورة تجريبية
+            <span class="tooltip">يُنشئ فاتورة عشوائية للاختبار بقيمة بين 50 و 500 ل.س.</span>
+          </button>
+        </div>
+
+        <table class="fake-table">
+          <tr><th>رقم الفاتورة</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>الحالة</th><th>%</th></tr>
+          <tr><td>INV-001</td><td>525.00</td><td>525.00</td><td>0.00</td><td style="color:var(--green)">مدفوعة ✅</td><td>100%</td></tr>
+          <tr><td>INV-002</td><td>850.00</td><td>400.00</td><td>450.00</td><td style="color:var(--yellow)">جزئياً 🟡</td><td>47%</td></tr>
+          <tr><td>INV-003</td><td>1200.00</td><td>0.00</td><td>1200.00</td><td style="color:var(--red)">غير مدفوعة ❌</td><td>0%</td></tr>
+        </table>
+
+        <div class="info-box">
+          <strong>PaymentChecker Daemon:</strong> خيط خفي يعمل في الخلفية كل 60 ثانية — يتحقق من الفواتير التي مضى عليها أكثر من 7 أيام بدون دفع كامل، ويطبع تحذيراً في السجل.
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: الصناديق
+      ══════════════════════════════════ -->
+      <div id="tab-cashier" class="tab-panel">
+        <div class="tab-title">🏪 محاكاة الصناديق المتعددة</div>
+        <div class="tab-subtitle">Race Condition الحقيقي — كل صندوق Thread مستقل يتنافس على المخزون</div>
+
+        <div class="btn-row">
+          <div class="spinbox-row">
+            عدد الصناديق:
+            <input type="number" class="spinbox" value="3" min="2" max="5" readonly>
+          </div>
+          <div class="radio-group">
+            <div class="radio-opt" style="color:var(--green);">
+              <div class="radio-circle selected"></div> 🔒 مع Lock
+            </div>
+            <div class="radio-opt" style="color:var(--red);">
+              <div class="radio-circle"></div> ⚡ بدون Lock
+            </div>
+          </div>
+          <button class="mock-btn" style="background:var(--green);color:white;">
+            ▶ تشغيل الصناديق
+            <span class="tooltip">يُنشئ عدد الصناديق المحدد كـ Threads — كل صندوق يعمل باستقلالية تامة ويشتري من المخزون المشترك.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--red);color:white;">
+            ⏹ إيقاف
+            <span class="tooltip">يوقف جميع خيوط الصناديق بشكل نظيف.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--yellow);color:white;">
+            🔄 إعادة ضبط المخزون
+            <span class="tooltip">يُعيد المخزون للقيم الأصلية لبدء اختبار جديد نظيف.</span>
+          </button>
+        </div>
+
+        <!-- Cashier boxes visual -->
+        <div class="cashier-boxes">
+          <div class="cashier-box" style="background:#238636;border-color:#3fb950;">
+            <div class="cashier-box-label">صندوق 1</div>
+            <div class="cashier-box-status">🛍 SERVING</div>
+            <div class="cashier-box-status">مبيعات: 1250</div>
+            <div class="cashier-box-status">عمليات: 8</div>
+          </div>
+          <div class="cashier-box" style="background:#9a7000;border-color:var(--yellow);">
+            <div class="cashier-box-label">صندوق 2</div>
+            <div class="cashier-box-status">⏳ WAITING</div>
+            <div class="cashier-box-status">مبيعات: 875</div>
+            <div class="cashier-box-status">عمليات: 5</div>
+          </div>
+          <div class="cashier-box" style="background:#30363d;border-color:var(--gray);">
+            <div class="cashier-box-label">صندوق 3</div>
+            <div class="cashier-box-status">😴 IDLE</div>
+            <div class="cashier-box-status">مبيعات: 600</div>
+            <div class="cashier-box-status">عمليات: 4</div>
+          </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="two-col" style="margin-top:12px;">
+          <div class="chart-mock">
+            <div class="chart-title">مبيعات كل صندوق (ل.س)</div>
+            <div class="bar-chart">
+              <div class="bar-col">
+                <div class="bar-fill" style="height:70px;background:var(--blue);"></div>
+                <div class="bar-label">ص1</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-fill" style="height:45px;background:var(--green);"></div>
+                <div class="bar-label">ص2</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-fill" style="height:30px;background:var(--yellow);"></div>
+                <div class="bar-label">ص3</div>
+              </div>
+            </div>
+          </div>
+          <div class="chart-mock">
+            <div class="chart-title">Race Conditions لكل صندوق</div>
+            <div class="bar-chart">
+              <div class="bar-col">
+                <div class="bar-fill" style="height:5px;background:var(--green);"></div>
+                <div class="bar-label">ص1: 0</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-fill" style="height:5px;background:var(--green);"></div>
+                <div class="bar-label">ص2: 0</div>
+              </div>
+              <div class="bar-col">
+                <div class="bar-fill" style="height:5px;background:var(--green);"></div>
+                <div class="bar-label">ص3: 0</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: الخصومات
+      ══════════════════════════════════ -->
+      <div id="tab-discount" class="tab-panel">
+        <div class="tab-title">🏷 إدارة الخصومات</div>
+        <div class="tab-subtitle">إضافة وتطبيق خصومات على المنتجات أو الفئات</div>
+        <div class="info-box">تتيح هذه الواجهة إنشاء كوبونات وخصومات مؤقتة. كل خصم يُطبَّق بشكل آمن عبر Lock عند تعديل سعر المنتج.</div>
+        <div class="btn-row">
+          <button class="mock-btn" style="background:var(--green);color:white;">
+            ➕ إضافة خصم
+            <span class="tooltip">يضيف خصماً جديداً بنسبة مئوية أو قيمة ثابتة على منتج أو فئة.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--blue);color:white;">
+            ✅ تطبيق الخصومات
+            <span class="tooltip">يطبق جميع الخصومات النشطة على الأسعار في قاعدة البيانات.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--red);color:white;">
+            ❌ إلغاء الخصم
+            <span class="tooltip">يلغي الخصم المحدد ويعيد السعر الأصلي.</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: التوصيل
+      ══════════════════════════════════ -->
+      <div id="tab-delivery" class="tab-panel">
+        <div class="tab-title">🚚 إدارة التوصيل</div>
+        <div class="tab-subtitle">تتبع طلبات التوصيل وتعيين السائقين</div>
+        <div class="info-box">نظام تتبع الطلبات الخارجة للتوصيل. كل طلب يُعالَج في خيط مستقل مع مراقبة الحالة.</div>
+        <div class="btn-row">
+          <button class="mock-btn" style="background:var(--green);color:white;">
+            ➕ طلب توصيل جديد
+            <span class="tooltip">يُضيف طلب توصيل جديد مرتبط بفاتورة محددة.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--blue);color:white;">
+            🔄 تحديث الحالة
+            <span class="tooltip">يُغيّر حالة الطلب: قيد الانتظار / في الطريق / تم التسليم.</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: مرئية الخيوط
+      ══════════════════════════════════ -->
+      <div id="tab-thread-vis" class="tab-panel">
+        <div class="tab-title">🎨 مرئية الخيوط المباشرة</div>
+        <div class="tab-subtitle">Timeline بالألوان لكل خيط نشط — يتحدث كل 500ms</div>
+
+        <div class="info-box">
+          <span style="color:var(--green)">● أخضر</span> = يعمل &nbsp;|&nbsp;
+          <span style="color:var(--yellow)">● أصفر</span> = ينتظر قفل &nbsp;|&nbsp;
+          <span style="color:var(--red)">● أحمر</span> = محجوب &nbsp;|&nbsp;
+          <span style="color:var(--gray)">● رمادي</span> = خامل
+        </div>
+
+        <!-- Timeline chart mock -->
+        <div class="chart-mock">
+          <div class="chart-title">📈 Timeline الخيوط — آخر 30 نقطة</div>
+          <div style="display:flex;flex-direction:column;gap:6px;padding:8px 0;">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-family:monospace;font-size:0.7rem;color:#8aa8c8;width:140px;text-align:right">Cashier-1</span>
+              <div style="flex:1;height:16px;background:linear-gradient(to left,var(--green) 60%,var(--yellow) 30%,var(--green) 10%);border-radius:3px;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-family:monospace;font-size:0.7rem;color:#8aa8c8;width:140px;text-align:right">Cashier-2</span>
+              <div style="flex:1;height:16px;background:linear-gradient(to left,var(--yellow) 40%,var(--green) 60%);border-radius:3px;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-family:monospace;font-size:0.7rem;color:#8aa8c8;width:140px;text-align:right">RestockScanner</span>
+              <div style="flex:1;height:16px;background:linear-gradient(to left,var(--green) 80%,var(--gray) 20%);border-radius:3px;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-family:monospace;font-size:0.7rem;color:#8aa8c8;width:140px;text-align:right">RestockProcessor</span>
+              <div style="flex:1;height:16px;background:linear-gradient(to left,var(--gray) 50%,var(--green) 30%,var(--gray) 20%);border-radius:3px;"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;">
+              <span style="font-family:monospace;font-size:0.7rem;color:#8aa8c8;width:140px;text-align:right">PoolWorker-1</span>
+              <div style="flex:1;height:16px;background:linear-gradient(to left,var(--green) 100%);border-radius:3px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Thread list -->
+        <div class="section-title">📋 قائمة الخيوط الحالية</div>
+        <div class="fake-console">
+          <span class="log-ok">● MainThread          — يعمل</span><br>
+          <span class="log-ok">● Cashier-1           — يعمل | يخدم زبون</span><br>
+          <span class="log-warn">● Cashier-2           — ينتظر قفل stock_lock</span><br>
+          <span class="log-ok">● RestockScanner       — يعمل | يفحص المخزون</span><br>
+          <span class="log-info">● RestockProcessor     — خامل | ينتظر منتج منخفض</span><br>
+          <span class="log-ok">● PoolWorker-1         — يعمل | ينفذ فاتورة</span><br>
+          <span class="log-ok">● DeadlockDetector     — يعمل | يراقب كل 5ث</span><br>
+          <span class="log-ok">● OverdueInvoiceMonitor— يعمل | يفحص كل 60ث</span>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: Race Condition
+      ══════════════════════════════════ -->
+      <div id="tab-race" class="tab-panel">
+        <div class="tab-title">⚡ Race Condition</div>
+        <div class="tab-subtitle">5 سيناريوهات + 🔥 Stress Test بـ 20 خيطاً — إثبات مرئي لمشكلة التزامن</div>
+
+        <!-- Metrics -->
+        <div class="cards-grid" style="grid-template-columns:repeat(4,1fr);">
+          <div class="stat-card" style="background:#1a0808;border:1px solid var(--red);">
+            <div class="stat-card-label" style="color:var(--red);">⚡ تضارب بيانات</div>
+            <div class="stat-card-value" style="color:var(--red);">7</div>
+          </div>
+          <div class="stat-card" style="background:#080e08;border:1px solid var(--green);">
+            <div class="stat-card-label" style="color:var(--green);">✅ عمليات ناجحة</div>
+            <div class="stat-card-value" style="color:var(--green);">43</div>
+          </div>
+          <div class="stat-card" style="background:#0e0e08;border:1px solid var(--yellow);">
+            <div class="stat-card-label" style="color:var(--yellow);">❌ عمليات فاشلة</div>
+            <div class="stat-card-value" style="color:var(--yellow);">3</div>
+          </div>
+          <div class="stat-card" style="background:#1a0808;border:1px solid var(--red);">
+            <div class="stat-card-label" style="color:var(--red);">نسبة الفساد</div>
+            <div class="stat-card-value" style="color:var(--red);font-size:1.4rem;">13.2%</div>
+          </div>
+        </div>
+
+        <!-- 5 Scenarios -->
+        <div class="section-title">🧪 اختر السيناريو</div>
+        <div class="btn-row">
+          <button class="mock-btn" style="background:#b91c1c;color:white;">
+            1. بدون قفل
+            <span class="tooltip">يشغّل 10 خيوط بدون أي تزامن — ستظهر Race Conditions وبيانات فاسدة في الحال.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--green);color:white;">
+            2. مع Mutex
+            <span class="tooltip">يشغّل 10 خيوط مع threading.Lock() — خيط واحد فقط يعدل المخزون في كل لحظة. لا تضارب.</span>
+          </button>
+          <button class="mock-btn" style="background:#9a7000;color:white;">
+            3. Semaphore(2)
+            <span class="tooltip">يسمح لخيطين فقط بالدخول المتزامن — توازن بين الأداء والأمان.</span>
+          </button>
+          <button class="mock-btn" style="background:#1a4a8a;color:white;">
+            4. RWLock
+            <span class="tooltip">قراءة متعددة + كتابة حصرية — الخيوط التي تقرأ فقط لا تنتظر بعضها.</span>
+          </button>
+          <button class="mock-btn" style="background:#6a2a8a;color:white;">
+            5. Barrier+Mutex
+            <span class="tooltip">يجمع الخيوط عند نقطة مشتركة (Barrier) ثم يُطلقها معاً مع Mutex — أفضل نتائج.</span>
+          </button>
+        </div>
+
+        <div class="btn-row">
+          <button class="mock-btn" style="background:var(--green);color:white;">
+            ▶ شغّل الجميع
+            <span class="tooltip">يُشغّل السيناريوهات الخمسة متتالياً ويقارن النتائج.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--gray);color:white;">
+            🗑 مسح السجل
+            <span class="tooltip">يمسح سجل النتائج التفصيلي.</span>
+          </button>
+        </div>
+
+        <!-- Stress Test -->
+        <div style="background:#1a0508;border:1px solid var(--red);border-radius:8px;padding:16px;margin-top:12px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+            <span style="font-size:0.78rem;color:#6a2a2a;">يُظهر الفرق الحقيقي أمام المدرس</span>
+            <span style="font-size:1rem;font-weight:700;color:var(--red);">🔥 Stress Test — 20 خيطاً يهجمون على نفس المورد</span>
+          </div>
+          <div class="cards-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:10px;">
+            <div style="text-align:center;padding:8px;">
+              <div style="font-size:0.8rem;color:var(--red);font-weight:700;">⚡ Race Conditions</div>
+              <div style="font-size:1.6rem;font-weight:900;color:var(--red);">18</div>
+            </div>
+            <div style="text-align:center;padding:8px;">
+              <div style="font-size:0.8rem;color:var(--green);font-weight:700;">✅ ناجحة</div>
+              <div style="font-size:1.6rem;font-weight:900;color:var(--green);">2</div>
+            </div>
+            <div style="text-align:center;padding:8px;">
+              <div style="font-size:0.8rem;color:var(--yellow);font-weight:700;">❌ فاشلة</div>
+              <div style="font-size:1.6rem;font-weight:900;color:var(--yellow);">0</div>
+            </div>
+            <div style="text-align:center;padding:8px;">
+              <div style="font-size:0.8rem;color:var(--yellow);font-weight:700;">المرحلة</div>
+              <div style="font-size:0.9rem;font-weight:700;color:var(--yellow);">Phase 1: بدون Sync</div>
+            </div>
+          </div>
+          <div style="font-size:0.75rem;color:#6a3a3a;margin-bottom:6px;">شريط تقدم الخيوط الـ 20:</div>
+          <div class="stress-bars">
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:100%;background:#f85149;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:80%;background:#ff7b72;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:100%;background:#ffa657;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:60%;background:#d29922;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:100%;background:#e3b341;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:40%;background:#3fb950;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:100%;background:#56d364;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:75%;background:#00e5c3;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:90%;background:#26c6da;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:55%;background:#1f6feb;"></div></div>
+          </div>
+          <div class="stress-bars" style="margin-top:2px;">
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:85%;background:#58a6ff;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:100%;background:#79c0ff;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:30%;background:#a5d6ff;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:95%;background:#a78bfa;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:70%;background:#c084fc;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:100%;background:#f0abfc;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:45%;background:#fb7185;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:80%;background:#fb923c;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:100%;background:#a3e635;"></div></div>
+            <div class="stress-bar-item"><div class="stress-bar-fill" style="width:65%;background:#34d399;"></div></div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:10px;align-items:center;">
+            <button class="mock-btn" style="background:#b91c1c;color:white;flex:1;justify-content:center;padding:12px;">
+              🔥 Stress Test — ابدأ (20 خيطاً)
+              <span class="tooltip" style="min-width:280px;">
+                المرحلة 1: 20 خيطاً يهجمون بدون Sync → race conditions تظهر<br>
+                المرحلة 2: نفس الـ 20 خيط مع Mutex → نتائج نظيفة تماماً<br>
+                المقارنة المباشرة تثبت أهمية التزامن بشكل واضح جداً!
+              </span>
+            </button>
+            <div style="flex:0 0 180px;">
+              <div style="font-size:0.72rem;color:#6a2a2a;margin-bottom:4px;">تقدم كلي</div>
+              <div class="progress-track">
+                <div class="progress-fill" style="width:45%;background:var(--red);"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: Producer-Consumer
+      ══════════════════════════════════ -->
+      <div id="tab-pc" class="tab-panel">
+        <div class="tab-title">🔄 Producer-Consumer المتقدم</div>
+        <div class="tab-subtitle">Priority Queue مشتركة — Producers تُنتج، Consumers تستهلك</div>
+
+        <div class="two-col">
+          <div>
+            <div class="section-title">📦 Priority Queue (سعة 15)</div>
+            <div style="background:#030810;border-radius:6px;padding:12px;border:1px solid var(--border);">
+              <!-- Visual queue -->
+              <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;">
+                <div style="background:var(--red);color:white;padding:4px 8px;border-radius:4px;font-size:0.7rem;font-family:monospace;">P=1 طلب</div>
+                <div style="background:var(--red);color:white;padding:4px 8px;border-radius:4px;font-size:0.7rem;font-family:monospace;">P=1 طلب</div>
+                <div style="background:var(--yellow);color:white;padding:4px 8px;border-radius:4px;font-size:0.7rem;font-family:monospace;">P=2 طلب</div>
+                <div style="background:var(--blue);color:white;padding:4px 8px;border-radius:4px;font-size:0.7rem;font-family:monospace;">P=3 طلب</div>
+                <div style="background:var(--blue);color:white;padding:4px 8px;border-radius:4px;font-size:0.7rem;font-family:monospace;">P=3 طلب</div>
+                <div style="background:var(--gray);color:white;padding:4px 8px;border-radius:4px;font-size:0.7rem;font-family:monospace;">P=5 طلب</div>
+              </div>
+              <div style="font-size:0.75rem;color:#5a7a9a;">Queue: 6/15 — الأحمر أعلى أولوية</div>
+            </div>
+
+            <div class="chart-mock" style="margin-top:10px;">
+              <div class="chart-title">Queue Size عبر الزمن</div>
+              <svg class="line-chart-svg" viewBox="0 0 300 60">
+                <path d="M0,30 L20,25 L40,35 L60,20 L80,40 L100,10 L120,30 L140,45 L160,20 L180,35 L200,15 L220,40 L240,25 L260,30 L280,20 L300,35" stroke="var(--green)" stroke-width="2" fill="none"/>
+              </svg>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0;">
+              <div style="text-align:center;background:#080e08;border-radius:6px;padding:8px;">
+                <div style="font-size:0.7rem;color:var(--green);">منتَج</div>
+                <div style="font-size:1.4rem;font-weight:700;color:var(--green);">142</div>
+              </div>
+              <div style="text-align:center;background:#0e0808;border-radius:6px;padding:8px;">
+                <div style="font-size:0.7rem;color:var(--red);">مستهلَك</div>
+                <div style="font-size:1.4rem;font-weight:700;color:var(--red);">136</div>
+              </div>
+              <div style="text-align:center;background:#0e0a08;border-radius:6px;padding:8px;">
+                <div style="font-size:0.7rem;color:#ffa500;">تجاوز</div>
+                <div style="font-size:1.4rem;font-weight:700;color:#ffa500;">0</div>
+              </div>
+            </div>
+
+            <div class="spinbox-row">عدد Producers: <input type="number" class="spinbox" value="2" readonly style="color:var(--green);"></div>
+            <div class="spinbox-row">عدد Consumers: <input type="number" class="spinbox" value="1" readonly style="color:var(--red);"></div>
+            <div style="font-size:0.82rem;color:#8aa8c8;margin:6px 0;">سرعة الإنتاج (ث): 0.5 — سرعة الاستهلاك (ث): 1.0</div>
+            <div class="btn-row">
+              <button class="mock-btn" style="background:var(--green);color:white;flex:1;">
+                ▶ تشغيل
+                <span class="tooltip">يُنشئ خيوط Producers و Consumers ويبدأ المحاكاة.</span>
+              </button>
+              <button class="mock-btn" style="background:var(--red);color:white;flex:1;">
+                ⏹ إيقاف
+                <span class="tooltip">يوقف جميع الخيوط بشكل نظيف.</span>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <div class="section-title">📋 سجل Producer-Consumer</div>
+            <div class="fake-console" style="max-height:420px;">
+              <span style="color:var(--green)">[10:30:01] Producer-1: أنتج طلب P=1 (Queue: 3)</span><br>
+              <span style="color:var(--green)">[10:30:01] Producer-2: أنتج طلب P=3 (Queue: 4)</span><br>
+              <span style="color:var(--red)">[10:30:01] Consumer-1: استهلك طلب P=1 (Queue: 3)</span><br>
+              <span style="color:var(--green)">[10:30:02] Producer-1: أنتج طلب P=2 (Queue: 4)</span><br>
+              <span style="color:var(--yellow)">[10:30:02] Producer-1: ⚠ Queue ممتلئة! انتظار...</span><br>
+              <span style="color:var(--red)">[10:30:02] Consumer-1: استهلك طلب P=1 (Queue: 3)</span><br>
+              <span style="color:#5a7a9a">[10:30:03] Consumer-1: Queue فارغة — ينتظر...</span><br>
+              <span style="color:var(--green)">[10:30:03] Producer-2: أنتج طلب P=1 (Queue: 1)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: CPU Scheduling
+      ══════════════════════════════════ -->
+      <div id="tab-sched" class="tab-panel">
+        <div class="tab-title">📅 محاكاة جدولة المعالج</div>
+        <div class="tab-subtitle">FCFS / SJF / Round Robin مع رسم Gantt Chart</div>
+
+        <div class="two-col">
+          <div>
+            <div class="section-title">📋 العمليات</div>
+            <table class="fake-table">
+              <tr><th>PID</th><th>وصول</th><th>زمن CPU</th><th>أولوية</th></tr>
+              <tr><td>P1</td><td>0</td><td>6</td><td>2</td></tr>
+              <tr><td>P2</td><td>2</td><td>4</td><td>1</td></tr>
+              <tr><td>P3</td><td>4</td><td>2</td><td>3</td></tr>
+              <tr><td>P4</td><td>6</td><td>3</td><td>2</td></tr>
+            </table>
+            <div class="btn-row">
+              <button class="mock-btn" style="background:var(--green);color:white;">
+                ➕ أضف عملية
+                <span class="tooltip">يضيف عملية جديدة للجدول بزمن وصول وزمن CPU محددَين.</span>
+              </button>
+              <button class="mock-btn" style="background:var(--red);color:white;">
+                ➖ احذف
+                <span class="tooltip">يحذف العملية المحددة.</span>
+              </button>
+              <button class="mock-btn" style="background:var(--yellow);color:white;">
+                🔄 إعادة
+                <span class="tooltip">يعيد العمليات الافتراضية.</span>
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="section-title">الخوارزمية</div>
+            <div class="radio-group" style="flex-direction:column;align-items:flex-end;gap:12px;">
+              <div class="radio-opt" style="color:var(--green);">
+                <div class="radio-circle selected"></div> FCFS — First Come First Served
+              </div>
+              <div class="radio-opt" style="color:var(--yellow);">
+                <div class="radio-circle"></div> SJF — Shortest Job First
+              </div>
+              <div class="radio-opt" style="color:var(--accent);">
+                <div class="radio-circle"></div> RR — Round Robin
+              </div>
+            </div>
+            <div class="spinbox-row" style="margin-top:10px;">Quantum (RR): <input type="number" class="spinbox" value="2" readonly></div>
+          </div>
+        </div>
+
+        <button class="mock-btn" style="background:var(--blue);color:white;width:100%;justify-content:center;padding:12px;margin:12px 0;">
+          ▶ تشغيل الجدولة ورسم Gantt Chart
+          <span class="tooltip">يُحاكي الخوارزمية المختارة ويرسم Gantt Chart مع إحصائيات Waiting Time و Turnaround Time.</span>
+        </button>
+
+        <!-- Gantt Chart mock -->
+        <div class="gantt-mock">
+          <div class="chart-title">📊 Gantt Chart — FCFS</div>
+          <div class="gantt-row">
+            <div class="gantt-label">P1</div>
+            <div class="gantt-block" style="width:120px;background:#1f6feb;">0 ← 6</div>
+          </div>
+          <div class="gantt-row">
+            <div class="gantt-label">P2</div>
+            <div class="gantt-block" style="width:24px;background:transparent;"></div>
+            <div class="gantt-block" style="width:80px;background:#238636;">6 ← 10</div>
+          </div>
+          <div class="gantt-row">
+            <div class="gantt-label">P3</div>
+            <div class="gantt-block" style="width:48px;background:transparent;"></div>
+            <div class="gantt-block" style="width:40px;background:#9a7000;">10 → 12</div>
+          </div>
+          <div class="gantt-row">
+            <div class="gantt-label">P4</div>
+            <div class="gantt-block" style="width:56px;background:transparent;"></div>
+            <div class="gantt-block" style="width:60px;background:#a21caf;">12 → 15</div>
+          </div>
+          <div style="margin-top:10px;font-family:monospace;font-size:0.78rem;color:#8aa8c8;">
+            متوسط Waiting Time: 4.25 | متوسط Turnaround Time: 8.75
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: الأداء
+      ══════════════════════════════════ -->
+      <div id="tab-perf" class="tab-panel">
+        <div class="tab-title">📈 مراقبة الأداء الحي</div>
+        <div class="tab-subtitle">CPU% و RAM% الحقيقيان + مقارنة Race vs Sync</div>
+
+        <div class="two-col" style="margin-bottom:16px;">
+          <div class="chart-mock">
+            <div class="chart-title">CPU% (Real-time) — psutil</div>
+            <svg class="line-chart-svg" viewBox="0 0 300 60">
+              <path d="M0,40 L30,30 L60,45 L90,20 L120,35 L150,15 L180,40 L210,25 L240,35 L270,20 L300,30" stroke="#f85149" stroke-width="2" fill="none"/>
+            </svg>
+          </div>
+          <div class="chart-mock">
+            <div class="chart-title">RAM% (Real-time) — psutil</div>
+            <svg class="line-chart-svg" viewBox="0 0 300 60">
+              <path d="M0,35 L30,33 L60,34 L90,32 L120,36 L150,33 L180,35 L210,34 L240,33 L270,35 L300,34" stroke="#d29922" stroke-width="2" fill="none"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="two-col">
+          <div class="chart-mock">
+            <div class="chart-title">تطور المخزون: Race vs Sync</div>
+            <svg class="line-chart-svg" viewBox="0 0 300 60">
+              <path d="M0,10 L50,5 L100,-5 L150,-15 L200,-10" stroke="var(--red)" stroke-width="2" fill="none"/>
+              <path d="M0,10 L50,15 L100,20 L150,18 L200,22" stroke="var(--green)" stroke-width="2" fill="none"/>
+            </svg>
+            <div style="font-size:0.72rem;margin-top:4px;">
+              <span style="color:var(--red);">■ بدون Lock (فوضى)</span> &nbsp;
+              <span style="color:var(--green);">■ مع Lock (منتظم)</span>
+            </div>
+          </div>
+          <div>
+            <div class="cards-grid" style="grid-template-columns:repeat(2,1fr);">
+              <div class="stat-card" style="background:#0a1526;border:1px solid var(--accent);">
+                <div class="stat-card-label" style="color:var(--accent);">إجمالي الخيوط</div>
+                <div class="stat-card-value" style="color:var(--accent);">12</div>
+              </div>
+              <div class="stat-card" style="background:#080e08;border:1px solid var(--green);">
+                <div class="stat-card-label" style="color:var(--green);">ناجحة</div>
+                <div class="stat-card-value" style="color:var(--green);">43</div>
+              </div>
+              <div class="stat-card" style="background:#0e0808;border:1px solid var(--red);">
+                <div class="stat-card-label" style="color:var(--red);">فاشلة</div>
+                <div class="stat-card-value" style="color:var(--red);">3</div>
+              </div>
+              <div class="stat-card" style="background:#0e0e08;border:1px solid var(--yellow);">
+                <div class="stat-card-label" style="color:var(--yellow);">تضاربات</div>
+                <div class="stat-card-value" style="color:var(--yellow);">7</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: Multi-Cashier Dashboard
+      ══════════════════════════════════ -->
+      <div id="tab-multicash" class="tab-panel">
+        <div class="tab-title">🏦 Multi-Cashier Dashboard</div>
+        <div class="tab-subtitle">نفس تبويب الصناديق لكن بتركيز على إحصائيات Race Condition</div>
+        <div class="info-box">يعرض مقارنة مباشرة بين الصناديق التي تعمل مع Lock وبدون Lock في نفس الوقت.</div>
+        <div class="cashier-boxes" style="margin-top:12px;">
+          <div class="cashier-box" style="background:#238636;border-color:var(--green);">
+            <div class="cashier-box-label">صندوق 1 🔒</div>
+            <div class="cashier-box-status" style="color:var(--green);">مع Lock</div>
+            <div class="cashier-box-status">مبيعات: 2150</div>
+            <div class="cashier-box-status" style="color:var(--green);">Race: 0 ✓</div>
+          </div>
+          <div class="cashier-box" style="background:#238636;border-color:var(--green);">
+            <div class="cashier-box-label">صندوق 2 🔒</div>
+            <div class="cashier-box-status" style="color:var(--green);">مع Lock</div>
+            <div class="cashier-box-status">مبيعات: 1800</div>
+            <div class="cashier-box-status" style="color:var(--green);">Race: 0 ✓</div>
+          </div>
+          <div class="cashier-box" style="background:#6a1010;border-color:var(--red);">
+            <div class="cashier-box-label">صندوق 3 ⚡</div>
+            <div class="cashier-box-status" style="color:var(--red);">بدون Lock</div>
+            <div class="cashier-box-status">مبيعات: 950</div>
+            <div class="cashier-box-status" style="color:var(--red);">Race: 5 ⚠</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: Deadlock (غرفة الاستراحة)
+      ══════════════════════════════════ -->
+      <div id="tab-deadlock" class="tab-panel">
+        <div class="tab-title">🍵 غرفة الاستراحة — Deadlock تفاعلي</div>
+        <div class="tab-subtitle">محاكاة الإغلاق المتبادل بين الموظفين على الموارد</div>
+
+        <div class="info-box">
+          <strong>القصة:</strong> كل موظف (Thread) يحتاج مصدرَين (مثل: الكيتل + الكوب) ليصنع قهوة. إذا أخذ كل موظف مصدراً وانتظر الآخر — <span style="color:var(--red)">Deadlock!</span>
+        </div>
+
+        <div class="two-col">
+          <div>
+            <div class="section-title">🧑‍💼 الموظفون والموارد</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+              <div style="background:var(--bg2);border:1px solid var(--blue);border-radius:6px;padding:12px;text-align:center;">
+                <div style="font-size:1.5rem;">👷 موظف 1</div>
+                <div style="font-size:0.78rem;color:#8aa8c8;margin-top:6px;">يحمل: 🫖 كيتل</div>
+                <div style="font-size:0.78rem;color:var(--yellow);">ينتظر: ☕ كوب</div>
+              </div>
+              <div style="background:var(--bg2);border:1px solid var(--red);border-radius:6px;padding:12px;text-align:center;">
+                <div style="font-size:1.5rem;">👷 موظف 2</div>
+                <div style="font-size:0.78rem;color:#8aa8c8;margin-top:6px;">يحمل: ☕ كوب</div>
+                <div style="font-size:0.78rem;color:var(--red);">ينتظر: 🫖 كيتل ← Deadlock!</div>
+              </div>
+            </div>
+            <div class="btn-row">
+              <button class="mock-btn" style="background:var(--red);color:white;">
+                ▶ تشغيل Deadlock
+                <span class="tooltip">يشغّل السيناريو غير الآمن حيث يأخذ كل موظف مصدراً وينتظر الآخر.</span>
+              </button>
+              <button class="mock-btn" style="background:var(--green);color:white;">
+                🔒 تشغيل آمن
+                <span class="tooltip">يطبق Resource Ordering — دائماً يأخذ الكيتل أولاً ثم الكوب — يمنع Deadlock.</span>
+              </button>
+              <button class="mock-btn" style="background:var(--yellow);color:white;">
+                🔍 كشف Deadlock
+                <span class="tooltip">يشغّل خوارزمية DFS لكشف الدورات في مخطط انتظار الموارد.</span>
+              </button>
+              <button class="mock-btn" style="background:var(--gray);color:white;">
+                🔄 إعادة ضبط
+                <span class="tooltip">يوقف جميع الموظفين ويُعيد الموارد لحالتها الأولى.</span>
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="section-title">📋 سجل الأحداث</div>
+            <div class="fake-console">
+              <span class="log-ok">[10:30:01] موظف-1: أخذ 🫖 كيتل</span><br>
+              <span class="log-ok">[10:30:01] موظف-2: أخذ ☕ كوب</span><br>
+              <span class="log-warn">[10:30:02] موظف-1: ينتظر ☕ كوب...</span><br>
+              <span class="log-warn">[10:30:02] موظف-2: ينتظر 🫖 كيتل...</span><br>
+              <span class="log-race">⚠ DEADLOCK مكتشف! دورة: موظف-1 → موظف-2 → موظف-1</span><br>
+              <span class="log-warn">[10:30:07] DeadlockDetector: تم الكشف بعد 5 ثوانٍ</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: Paging
+      ══════════════════════════════════ -->
+      <div id="tab-paging" class="tab-panel">
+        <div class="tab-title">🗄 مدير تخزين الرفوف — Paging</div>
+        <div class="tab-subtitle">محاكاة إدارة الذاكرة بالصفحات — FIFO / LRU / Optimal</div>
+
+        <div class="info-box">
+          <strong>الفكرة:</strong> رفوف السوبر ماركت = إطارات الذاكرة الفيزيائية. المنتجات = الصفحات. متى تُدخل منتجاً جديداً وتُخرج قديماً؟ خوارزميات الاستبدال تجيب.
+        </div>
+
+        <!-- Page frames visual -->
+        <div class="section-title">🗃 إطارات الذاكرة (Frames)</div>
+        <div class="page-grid">
+          <div class="page-frame" style="background:var(--blue);">حليب</div>
+          <div class="page-frame" style="background:var(--green);">أرز</div>
+          <div class="page-frame" style="background:var(--blue);">زيت</div>
+          <div class="page-frame" style="background:var(--gray);">فارغ</div>
+          <div class="page-frame" style="background:var(--red);">خبز←NEW</div>
+          <div class="page-frame" style="background:var(--gray);">فارغ</div>
+          <div class="page-frame" style="background:var(--gray);">فارغ</div>
+          <div class="page-frame" style="background:var(--gray);">فارغ</div>
+        </div>
+
+        <div class="btn-row" style="margin-top:12px;">
+          <button class="mock-btn" style="background:var(--green);color:white;">
+            ▶ ابدأ المحاكاة
+            <span class="tooltip">يُشغّل سلسلة الطلبات المحددة وينفذ خوارزمية الاستبدال المختارة.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--red);color:white;">
+            ⏹ إيقاف
+            <span class="tooltip">يوقف المحاكاة.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--yellow);color:white;">
+            🎲 توليد عشوائي
+            <span class="tooltip">يُنشئ سلسلة طلبات عشوائية للمحاكاة.</span>
+          </button>
+        </div>
+
+        <div class="info-box" style="margin-top:10px;">
+          <strong>نسبة Page Fault:</strong> 37.5% — 3 أخطاء من 8 طلبات<br>
+          <strong>خوارزمية LRU:</strong> تستبدل الصفحة الأقل استخداماً مؤخراً — الأفضل عموماً
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: Disk Scheduling
+      ══════════════════════════════════ -->
+      <div id="tab-disksched" class="tab-panel">
+        <div class="tab-title">🚚 جدولة شاحنات التوصيل — Disk Scheduling</div>
+        <div class="tab-subtitle">FCFS / SSTF / SCAN / C-SCAN لجدولة الطلبات</div>
+
+        <div class="info-box">
+          <strong>التشبيه:</strong> شاحنة التوصيل = رأس القرص. الطلبات = أماكن العملاء. الخوارزمية تحدد أفضل مسار لتوفير الوقت والمسافة.
+        </div>
+
+        <div class="btn-row">
+          <button class="mock-btn" style="background:var(--green);color:white;">
+            ▶ ابدأ
+            <span class="tooltip">يُشغّل خوارزمية الجدولة المختارة ويرسم مسار الرأس.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--red);color:white;">
+            ⏹ إيقاف
+            <span class="tooltip">يوقف المحاكاة في أي نقطة.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--yellow);color:white;">
+            🎲 طلبات عشوائية
+            <span class="tooltip">يُنشئ مجموعة طلبات عشوائية للمحاكاة.</span>
+          </button>
+        </div>
+
+        <!-- Disk visualization mock -->
+        <div style="background:#030810;border-radius:6px;padding:16px;border:1px solid var(--border);margin:10px 0;">
+          <div style="font-size:0.78rem;color:#8aa8c8;margin-bottom:8px;">مسار الرأس (SCAN):</div>
+          <div style="position:relative;height:40px;background:var(--bg2);border-radius:4px;overflow:hidden;">
+            <div style="position:absolute;top:0;bottom:0;left:30%;width:3px;background:var(--accent);box-shadow:0 0 8px var(--accent);"></div>
+            <div style="position:absolute;top:50%;transform:translateY(-50%);left:0;right:0;height:2px;background:linear-gradient(to right,transparent,var(--yellow) 30%,var(--green) 60%,transparent);"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-family:monospace;font-size:0.65rem;color:#5a7a9a;margin-top:4px;">
+            <span>0</span><span>50</span><span>100</span><span>150</span><span>200</span>
+          </div>
+        </div>
+        <div style="font-family:monospace;font-size:0.78rem;color:#8aa8c8;">
+          إجمالي حركة الرأس: 184 | خوارزمية: SCAN | كفاءة: 73%
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: تقرير المبيعات (Multiprocessing)
+      ══════════════════════════════════ -->
+      <div id="tab-salesreport" class="tab-panel">
+        <div class="tab-title">📑 تقرير المبيعات اليومي</div>
+        <div class="tab-subtitle">Multiprocessing حقيقي — عدة Processes تُولّد التقرير بالتوازي</div>
+
+        <div class="info-box">
+          يستخدم <code class="code-inline">multiprocessing.Pool</code> لتوليد أجزاء التقرير بالتوازي على أنوية المعالج المختلفة — أسرع بكثير من التسلسلي.
+        </div>
+
+        <div class="btn-row">
+          <button class="mock-btn" style="background:var(--green);color:white;">
+            📊 توليد التقرير
+            <span class="tooltip">يُشغّل Pool من العمليات لتحليل بيانات المبيعات بالتوازي ثم يجمع النتائج.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--blue);color:white;">
+            📄 تصدير PDF
+            <span class="tooltip">يُصدّر التقرير النهائي كملف PDF باستخدام reportlab.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--yellow);color:white;">
+            📊 تصدير Excel
+            <span class="tooltip">يُصدّر البيانات بصيغة .xlsx.</span>
+          </button>
+        </div>
+
+        <div class="fake-console">
+          <span class="log-sync">[Process-1] يحلل مبيعات يوم 2025-06-17...</span><br>
+          <span class="log-sync">[Process-2] يحلل مبيعات يوم 2025-06-16...</span><br>
+          <span class="log-sync">[Process-3] يحلل مبيعات يوم 2025-06-15...</span><br>
+          <span class="log-ok">[Process-1] ✓ انتهى — 14 فاتورة، إجمالي: 8,521 ل.س</span><br>
+          <span class="log-ok">[Process-3] ✓ انتهى — 9 فواتير، إجمالي: 5,230 ل.س</span><br>
+          <span class="log-ok">[Process-2] ✓ انتهى — 12 فاتورة، إجمالي: 7,100 ل.س</span><br>
+          <span class="log-sync">━━ دمج النتائج ━━ إجمالي 3 أيام: 20,851 ل.س</span>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: Online Orders (Asyncio)
+      ══════════════════════════════════ -->
+      <div id="tab-online" class="tab-panel">
+        <div class="tab-title">🌐 نظام الطلبات أونلاين</div>
+        <div class="tab-subtitle">Asyncio / Sockets — خادم طلبات غير متزامن</div>
+
+        <div class="info-box">
+          يُنشئ <code class="code-inline">asyncio</code> خادم TCP يستقبل طلبات متعددة بشكل غير متزامن. كل طلب يُعالَج بدون انتظار الآخرين.
+        </div>
+
+        <div class="btn-row">
+          <button class="mock-btn" style="background:var(--green);color:white;">
+            ▶ تشغيل الخادم
+            <span class="tooltip">يُشغّل خادم asyncio على المنفذ 8888 — يستعد لاستقبال الطلبات.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--red);color:white;">
+            ⏹ إيقاف الخادم
+            <span class="tooltip">يوقف الخادم ويُغلق الاتصالات النشطة.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--blue);color:white;">
+            📤 إرسال طلب اختباري
+            <span class="tooltip">يُرسل طلباً وهمياً للخادم لاختبار الاستجابة.</span>
+          </button>
+        </div>
+
+        <div class="fake-console">
+          <span class="log-sync">[10:30:00] 🟢 الخادم يعمل على Port: 8888</span><br>
+          <span class="log-ok">[10:30:05] 📥 طلب جديد من 127.0.0.1 — حليب × 2</span><br>
+          <span class="log-ok">[10:30:05] ✓ طلب #001 قُبل — إجمالي: 300 ل.س</span><br>
+          <span class="log-ok">[10:30:06] 📥 طلب جديد من 127.0.0.1 — أرز × 1</span><br>
+          <span class="log-ok">[10:30:06] ✓ طلب #002 قُبل — إجمالي: 350 ل.س</span><br>
+          <span class="log-warn">[10:30:08] ⚠ طلب #003 رُفض — المخزون غير كافٍ</span>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: Task Manager
+      ══════════════════════════════════ -->
+      <div id="tab-taskmgr" class="tab-panel">
+        <div class="tab-title">🖥 مدير المهام (Task Manager)</div>
+        <div class="tab-subtitle">مراقبة خيوط البرنامج حياً — شبيه بـ Windows Task Manager</div>
+
+        <div class="info-box">
+          يُراقب جميع الخيوط النشطة في البرنامج، حالة كل منها، وقت تشغيله، وهل هو Daemon أم لا.
+        </div>
+
+        <div class="btn-row">
+          <button class="mock-btn" style="background:var(--green);color:white;">
+            🔄 تحديث
+            <span class="tooltip">يُجدّد قائمة الخيوط فوراً.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--red);color:white;">
+            ⏹ إيقاف الخيط
+            <span class="tooltip">يوقف الخيط المحدد (للخيوط القابلة للإيقاف).</span>
+          </button>
+        </div>
+
+        <table class="fake-table">
+          <tr><th>اسم الخيط</th><th>الحالة</th><th>Daemon</th><th>وقت التشغيل</th></tr>
+          <tr><td style="color:var(--accent)">MainThread</td><td style="color:var(--green)">● يعمل</td><td>لا</td><td>00:05:32</td></tr>
+          <tr><td style="color:var(--accent)">Cashier-1</td><td style="color:var(--green)">● يعمل</td><td>نعم</td><td>00:02:14</td></tr>
+          <tr><td style="color:var(--accent)">Cashier-2</td><td style="color:var(--yellow)">⏳ ينتظر</td><td>نعم</td><td>00:02:14</td></tr>
+          <tr><td style="color:var(--accent)">RestockScanner</td><td style="color:var(--green)">● يعمل</td><td>نعم</td><td>00:05:32</td></tr>
+          <tr><td style="color:var(--accent)">DeadlockDetector</td><td style="color:var(--green)">● يعمل</td><td>نعم</td><td>00:05:30</td></tr>
+          <tr><td style="color:var(--accent)">OverdueInvoiceMonitor</td><td style="color:var(--gray)">😴 خامل</td><td>نعم</td><td>00:05:32</td></tr>
+          <tr><td style="color:var(--accent)">PoolWorker-1</td><td style="color:var(--green)">● يعمل</td><td>نعم</td><td>00:00:02</td></tr>
+        </table>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: Starvation & Aging
+      ══════════════════════════════════ -->
+      <div id="tab-starvation" class="tab-panel">
+        <div class="tab-title">⏳ Starvation & Aging</div>
+        <div class="tab-subtitle">طابور أولوية — الزبائن ذوو الأولوية المنخفضة يجوعون بدون Aging</div>
+
+        <div class="info-box">
+          <strong>المشكلة:</strong> في طابور الأولوية، الزبون ذو الأولوية 5 قد لا يُخدَم أبداً إذا استمر وصول زبائن بأولوية 1.<br>
+          <strong>الحل (Aging):</strong> كل X ثانية انتظار، ترتفع الأولوية تلقائياً — يضمن خدمة الجميع.
+        </div>
+
+        <div class="btn-row">
+          <button class="mock-btn" style="background:var(--green);color:white;">
+            ▶ تشغيل الطابور
+            <span class="tooltip">يُنشئ زبائن بأولويات مختلفة ويبدأ الخدمة.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--blue);color:white;">
+            🔼 تفعيل Aging
+            <span class="tooltip">يُشغّل آلية Aging — كل 5 ثوانٍ انتظار ترفع الأولوية بمقدار 1.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--red);color:white;">
+            ⏹ إيقاف
+            <span class="tooltip">يوقف الطابور.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--yellow);color:white;">
+            ➕ زبون جديد
+            <span class="tooltip">يُضيف زبوناً جديداً بأولوية عشوائية للطابور.</span>
+          </button>
+        </div>
+
+        <table class="fake-table">
+          <tr><th>الزبون</th><th>الأولوية الأصلية</th><th>الأولوية الحالية</th><th>وقت الانتظار</th><th>الحالة</th></tr>
+          <tr><td>زبون-1</td><td>1</td><td style="color:var(--red)">1</td><td>0ث</td><td style="color:var(--green)">● يُخدَم</td></tr>
+          <tr><td>زبون-2</td><td>3</td><td style="color:var(--yellow)">2 ↑</td><td>15ث</td><td style="color:var(--yellow)">⏳ ينتظر</td></tr>
+          <tr><td>زبون-3</td><td>5</td><td style="color:var(--accent)">3 ↑↑</td><td>30ث</td><td style="color:var(--yellow)">⏳ ينتظر</td></tr>
+          <tr><td>زبون-4</td><td>4</td><td style="color:var(--yellow)">3 ↑</td><td>20ث</td><td style="color:var(--yellow)">⏳ ينتظر</td></tr>
+        </table>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: Audit Log
+      ══════════════════════════════════ -->
+      <div id="tab-audit" class="tab-panel">
+        <div class="tab-title">📋 Audit Log — سجل المراجعة</div>
+        <div class="tab-subtitle">يوثّق كل عملية مع اسم الخيط ووضع التزامن</div>
+
+        <div class="btn-row">
+          <button class="mock-btn" style="background:var(--blue);color:white;">
+            🔄 تحديث
+            <span class="tooltip">يعيد تحميل السجل من قاعدة البيانات.</span>
+          </button>
+          <button class="mock-btn" style="background:var(--red);color:white;">
+            🗑 مسح
+            <span class="tooltip">يحذف جميع سجلات Audit Log بعد تأكيد.</span>
+          </button>
+        </div>
+
+        <table class="fake-table">
+          <tr><th>ID</th><th>Thread</th><th>العملية</th><th>المنتج</th><th>قبل</th><th>بعد</th><th>الوقت</th><th>وضع التزامن</th></tr>
+          <tr><td>1</td><td style="color:var(--accent)">PoolWorker-1</td><td style="color:var(--blue)">SELL</td><td>1</td><td>20</td><td style="color:var(--red)">18</td><td>10:30:01</td><td style="color:var(--green)">MUTEX</td></tr>
+          <tr><td>2</td><td style="color:var(--accent)">RestockProcessor</td><td style="color:var(--yellow)">RESTOCK</td><td>1</td><td>3</td><td style="color:var(--green)">53</td><td>10:30:05</td><td style="color:var(--accent)">RWLOCK</td></tr>
+          <tr><td>3</td><td style="color:var(--accent)">ProductManager</td><td style="color:var(--purple)">ADD_PRODUCT</td><td>48</td><td>0</td><td style="color:var(--green)">50</td><td>10:31:10</td><td style="color:#8aa8c8">DIRECT</td></tr>
+          <tr><td>4</td><td style="color:var(--accent)">Cashier-2</td><td style="color:var(--red)">SELL</td><td>3</td><td>10</td><td style="color:var(--yellow)">7</td><td>10:32:00</td><td style="color:var(--red)">NONE ⚠</td></tr>
+        </table>
+      </div>
+
+      <!-- ══════════════════════════════════
+           TAB: تعلّم OS
+      ══════════════════════════════════ -->
+      <div id="tab-learn" class="tab-panel">
+        <div class="tab-title">📚 تعلّم مفاهيم نظام التشغيل</div>
+        <div class="tab-subtitle">كل مفهوم بشرح + محاكاة مصغّرة + تجربة مباشرة</div>
+
+        <!-- Thread -->
+        <div class="learn-card">
+          <div class="learn-card-header" style="background:rgba(31,111,235,0.1);border-bottom:2px solid var(--blue);">
+            <div class="learn-card-title">🧵 Thread (خيط التنفيذ)</div>
+            <span class="os-concept-badge" style="border-color:var(--blue);color:var(--blue);">Core Concept</span>
+          </div>
+          <div class="learn-card-body">
+Thread هو وحدة تنفيذ مستقلة داخل نفس العملية (Process).<br>
+• يشارك Thread الذاكرة وموارد النظام مع باقي الخيوط<br>
+• أخف من Process — لا يحتاج نسخ ذاكرة<br>
+• في هذا البرنامج: كل عملية بيع = Thread في Pool
+          </div>
+          <button class="learn-run-btn" style="background:var(--blue);">
+            ▶ شغّل التجربة
+            <span style="font-size:0.75rem;font-weight:400;"> — يُشغّل 3 خيوط ويُظهر ترتيب انتهائها</span>
+          </button>
+        </div>
+
+        <!-- Lock -->
+        <div class="learn-card">
+          <div class="learn-card-header" style="background:rgba(35,134,54,0.1);border-bottom:2px solid var(--green);">
+            <div class="learn-card-title">🔒 Lock / Mutex</div>
+            <span class="os-concept-badge" style="border-color:var(--green);color:var(--green);">Critical Section</span>
+          </div>
+          <div class="learn-card-body">
+Lock هو آلية تمنع أكثر من خيط من تعديل مورد مشترك في آنٍ واحد.<br>
+• acquire(): يطلب الخيط القفل — إن كان حراً أخذه، وإلا انتظر<br>
+• release(): يُحرر الخيط القفل عند انتهائه<br>
+• بدون Lock → Race Condition | مع Lock → أمان تام
+          </div>
+          <button class="learn-run-btn" style="background:var(--green);">
+            ▶ شغّل التجربة
+            <span style="font-size:0.75rem;font-weight:400;"> — يُثبت أن Lock يمنع Race Condition</span>
+          </button>
+        </div>
+
+        <!-- Semaphore -->
+        <div class="learn-card">
+          <div class="learn-card-header" style="background:rgba(0,229,195,0.1);border-bottom:2px solid var(--accent);">
+            <div class="learn-card-title">🚦 Semaphore</div>
+            <span class="os-concept-badge">عداد الدخول</span>
+          </div>
+          <div class="learn-card-body">
+Semaphore هو عداد يحدد عدد الخيوط المسموح لها بالدخول للمورد.<br>
+• acquire(): يُخفّض العداد — إن كان صفراً ينتظر<br>
+• release(): يرفع العداد — يُوقظ خيطاً منتظراً<br>
+• Semaphore(1) = Lock عادي | Semaphore(3): 3 خيوط متزامنة
+          </div>
+          <button class="learn-run-btn" style="background:var(--accent);color:#060d1a;">
+            ▶ شغّل التجربة
+            <span style="font-size:0.75rem;font-weight:400;"> — 4 خيوط، Semaphore(2) — من يدخل؟</span>
+          </button>
+        </div>
+
+        <!-- Deadlock -->
+        <div class="learn-card">
+          <div class="learn-card-header" style="background:rgba(248,81,73,0.1);border-bottom:2px solid var(--red);">
+            <div class="learn-card-title">☠ Deadlock</div>
+            <span class="os-concept-badge" style="border-color:var(--red);color:var(--red);">Circular Wait</span>
+          </div>
+          <div class="learn-card-body">
+Deadlock: حالة يتوقف فيها خيطان كل منهما ينتظر الآخر إلى الأبد.<br>
+• الشروط الأربعة: Mutual Exclusion, Hold & Wait, No Preemption, Circular Wait<br>
+• Prevention: Resource Ordering — احصل على الموارد بترتيب ثابت<br>
+• Detection: DFS لكشف الدورات في مخطط الانتظار
+          </div>
+          <button class="learn-run-btn" style="background:var(--red);">
+            ▶ شغّل التجربة
+            <span style="font-size:0.75rem;font-weight:400;"> — يُحدث Deadlock حقيقي ويكشفه</span>
+          </button>
+        </div>
+
+        <!-- Race Condition -->
+        <div class="learn-card">
+          <div class="learn-card-header" style="background:rgba(210,153,34,0.1);border-bottom:2px solid var(--yellow);">
+            <div class="learn-card-title">⚡ Race Condition</div>
+            <span class="os-concept-badge" style="border-color:var(--yellow);color:var(--yellow);">Data Corruption</span>
+          </div>
+          <div class="learn-card-body">
+Race Condition: خيطان يقرآن ويكتبان نفس المتغير في نفس اللحظة فيتخريب البيانات.<br>
+• يحدث بين القراءة والكتابة (Read-Modify-Write) بدون Lock<br>
+• المخزون يصبح سالباً! الأسوأ: لا رسالة خطأ — فساد صامت
+          </div>
+          <button class="learn-run-btn" style="background:var(--yellow);color:#060d1a;">
+            ▶ شغّل التجربة
+            <span style="font-size:0.75rem;font-weight:400;"> — 6 خيوط تشتري وتُخرب المخزون</span>
+          </button>
+        </div>
+
+      </div><!-- end tab-learn -->
+
+    </div><!-- end content-area -->
+  </div><!-- end app-body -->
+</div><!-- end main-app -->
+
+<!-- ════════════════════════════════
+     LOGIN PAGE MODAL (شرح شاشة الدخول)
+════════════════════════════════ -->
+<div id="login-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:500;align-items:center;justify-content:center;flex-direction:column;gap:20px;">
+  <div style="max-width:800px;width:95%;display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;">
+    <!-- Left: login mock -->
+    <div>
+      <div class="login-mock">
+        <div class="login-header">
+          <div style="font-size:2rem;">🛒</div>
+          <div class="login-brand">سوبر ماركت</div>
+          <div class="login-ver">نظام التشغيل 2 — v2.1 المتقدم</div>
+        </div>
+        <div class="login-body">
+          <div class="login-label">اسم المستخدم</div>
+          <input type="text" class="login-field" value="admin" readonly>
+          <div class="login-label">كلمة المرور</div>
+          <input type="password" class="login-field" value="12345678" readonly>
+          <button class="login-btn">تسجيل الدخول ←</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:10px 16px;background:var(--bg);">
+          <span style="font-size:0.65rem;color:#2a5a7a;font-family:monospace;">⚡ Race Condition</span>
+          <span style="font-size:0.65rem;color:#2a5a7a;font-family:monospace;">🔒 Mutex/RLock</span>
+          <span style="font-size:0.65rem;color:#2a5a7a;font-family:monospace;">🚦 Semaphore</span>
+          <span style="font-size:0.65rem;color:#2a5a7a;font-family:monospace;">🔄 Auto-Restock</span>
+          <span style="font-size:0.65rem;color:#2a5a7a;font-family:monospace;">📅 CPU Scheduling</span>
+          <span style="font-size:0.65rem;color:#2a5a7a;font-family:monospace;">🔍 Deadlock</span>
+        </div>
+      </div>
+    </div>
+    <!-- Right: explanation -->
+    <div style="color:var(--fg);">
+      <div style="font-size:1.2rem;font-weight:700;color:var(--accent);margin-bottom:10px;">🔐 شاشة تسجيل الدخول</div>
+      <div style="font-size:0.85rem;line-height:1.8;margin-bottom:14px;color:#8aa8c8;">
+        أول ما يرى المستخدم عند تشغيل البرنامج. تُطلب بيانات الدخول للوصول للنظام.
+      </div>
+      <div style="background:var(--bg2);border-radius:6px;padding:12px;font-size:0.82rem;line-height:1.8;border:1px solid var(--border);">
+        <div style="color:var(--fg);font-weight:600;margin-bottom:6px;">بيانات الدخول الافتراضية:</div>
+        <div>• اسم المستخدم: <code class="code-inline">admin</code></div>
+        <div>• كلمة المرور: <code class="code-inline">12345678</code></div>
+        <div style="margin-top:8px;color:#8aa8c8;">الكلمة تُحوَّل لـ <code class="code-inline">SHA-256</code> قبل مقارنتها مع قاعدة البيانات.</div>
+      </div>
+      <div style="margin-top:12px;font-size:0.82rem;color:#5a7a9a;">زر Enter يعمل بدل الضغط على زر تسجيل الدخول.</div>
+    </div>
+  </div>
+  <button onclick="closeLoginModal()" style="background:var(--accent);color:#060d1a;border:none;padding:10px 28px;border-radius:6px;font-family:Cairo;font-size:0.9rem;font-weight:700;cursor:pointer;">← إغلاق</button>
+</div>
+
+<!-- ════════════════════════════════
+     FLOATING NAV BUTTONS
+════════════════════════════════ -->
+<div style="position:fixed;bottom:20px;left:20px;z-index:400;display:flex;flex-direction:column;gap:8px;">
+  <button onclick="document.getElementById('login-modal').style.display='flex';" style="background:var(--bg2);border:1px solid var(--accent);color:var(--accent);padding:8px 14px;border-radius:6px;font-family:Cairo;font-size:0.8rem;cursor:pointer;transition:0.2s;" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='var(--bg2)'">
+    🔐 شاشة تسجيل الدخول
+  </button>
+  <button onclick="backToIntro()" style="background:var(--bg2);border:1px solid var(--border);color:#5a7a9a;padding:8px 14px;border-radius:6px;font-family:Cairo;font-size:0.8rem;cursor:pointer;transition:0.2s;" onmouseover="this.style.color='var(--fg)'" onmouseout="this.style.color='#5a7a9a'">
+    ← الصفحة الرئيسية
+  </button>
+</div>
+
+<script>
+  // ── Intro → Main App
+  function startApp() {
+    document.getElementById('intro-screen').classList.add('hidden');
+    setTimeout(() => {
+      document.getElementById('intro-screen').style.display = 'none';
+      document.getElementById('main-app').classList.add('visible');
+    }, 800);
+  }
+
+  function backToIntro() {
+    document.getElementById('main-app').classList.remove('visible');
+    document.getElementById('main-app').style.display = 'none';
+    const intro = document.getElementById('intro-screen');
+    intro.style.display = 'flex';
+    intro.classList.remove('hidden');
+  }
+
+  function closeLoginModal() {
+    document.getElementById('login-modal').style.display = 'none';
+  }
+
+  // ── Tab Navigation
+  function showTab(tabId) {
+    // Hide all panels
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    // Show target
+    const target = document.getElementById(tabId);
+    if (target) target.classList.add('active');
+
+    // Update sidebar buttons
+    document.querySelectorAll('.sidebar-btn').forEach(btn => btn.classList.remove('active'));
+    // Find the button that triggered this tab
+    document.querySelectorAll('.sidebar-btn').forEach(btn => {
+      if (btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(tabId)) {
+        btn.classList.add('active');
+      }
+    });
+  }
+
+  // ── Animate stat cards periodically
+  function animateStats() {
+    const counters = [
+      {id: null, selector: '.stat-card-value', values: ['14','15','16','14'], idx: 0},
+    ];
+  }
+
+  // ── Live thread counter simulation
+  let threadCount = 12;
+  setInterval(() => {
+    threadCount = Math.max(8, Math.min(20, threadCount + Math.floor(Math.random() * 3) - 1));
+    const el = document.querySelector('.topbar-stat');
+    if (el) el.textContent = `⚡ الخيوط: ${threadCount}`;
+  }, 2000);
+
+  // ── Stress test bar animation (demo only)
+  let stressAnimDir = 1;
+  setInterval(() => {
+    document.querySelectorAll('.stress-bar-fill').forEach((bar, i) => {
+      const curr = parseFloat(bar.style.width) || 50;
+      const next = Math.max(10, Math.min(100, curr + (Math.random() * 20 - 10)));
+      bar.style.width = next + '%';
+    });
+  }, 1200);
+
+  // Close login modal on backdrop click
+  document.getElementById('login-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeLoginModal();
+  });
+</script>
+</body>
+</html>
